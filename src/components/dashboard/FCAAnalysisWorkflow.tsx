@@ -97,13 +97,12 @@ export const FCAAnalysisWorkflow = () => {
     }
   };
 
-  const getTradingEconomicsUrl = (country: string) => {
-    const countrySlug = country.toLowerCase().replace(/\s+/g, '-');
-    return `https://tradingeconomics.com/${countrySlug}/inflation-cpi`;
+  const getTradingEconomicsUrl = () => {
+    return 'https://tradingeconomics.com/';
   };
 
-  const getExchangeRatesUrl = (currency: string, year: number) => {
-    return `https://www.exchangerates.org.uk/USD-${currency}-spot-exchange-rates-history-${year}.html`;
+  const getExchangeRatesUrl = () => {
+    return 'https://www.exchangerates.org.uk/';
   };
 
   const handleEmployeeSelect = async (employeeId: string) => {
@@ -392,104 +391,124 @@ export const FCAAnalysisWorkflow = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <Label className="text-xs">Inflation Rate (12 months)</Label>
-                      {selectedEmployee && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2"
-                          onClick={() => window.open(getTradingEconomicsUrl(selectedEmployee.country), '_blank')}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Verify
-                        </Button>
-                      )}
+                      <Label className="text-xs">Inflation Rate (%)</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={() => window.open(getTradingEconomicsUrl(), '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Verify
+                      </Button>
                     </div>
                     <Input
                       type="number"
                       step="0.01"
+                      placeholder="e.g., 3.8"
                       value={formData.inflation_rate}
                       onChange={(e) => setFormData({ ...formData, inflation_rate: e.target.value })}
                       disabled={fetchingMacroData}
                     />
                   </div>
                   
-                  {selectedEmployee?.currency !== "USD" && (
-                    <>
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <Label className="text-xs">FX Rate {new Date().getFullYear()}</Label>
-                          {selectedEmployee && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={() => window.open(getExchangeRatesUrl(selectedEmployee.currency, new Date().getFullYear()), '_blank')}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Verify
-                            </Button>
-                          )}
-                        </div>
-                        <Input
-                          type="number"
-                          step="0.0001"
-                          value={formData.fx_rate_current}
-                          onChange={(e) => setFormData({ ...formData, fx_rate_current: e.target.value })}
-                          disabled={fetchingMacroData}
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <Label className="text-xs">FX Rate {new Date().getFullYear() - 1}</Label>
-                          {selectedEmployee && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={() => window.open(getExchangeRatesUrl(selectedEmployee.currency, new Date().getFullYear() - 1), '_blank')}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Verify
-                            </Button>
-                          )}
-                        </div>
-                        <Input
-                          type="number"
-                          step="0.0001"
-                          value={formData.fx_rate_previous}
-                          onChange={(e) => setFormData({ ...formData, fx_rate_previous: e.target.value })}
-                          disabled={fetchingMacroData}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">FX Change %</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={formData.fx_change_percent}
-                          disabled
-                        />
-                      </div>
-                    </>
-                  )}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className="text-xs">USD - Local Currency Rate (This Year)</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={() => window.open(getExchangeRatesUrl(), '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Verify
+                      </Button>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      placeholder="e.g., 0.95"
+                      value={formData.fx_rate_current}
+                      onChange={(e) => {
+                        const newCurrent = e.target.value;
+                        const previous = parseFloat(formData.fx_rate_previous) || 0;
+                        const current = parseFloat(newCurrent) || 0;
+                        const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
+                        const inflation = parseFloat(formData.inflation_rate) || 0;
+                        const macroEffect = Math.abs(fxChange) + inflation;
+                        const adjustment = macroEffect * 0.5;
+                        
+                        setFormData({ 
+                          ...formData, 
+                          fx_rate_current: newCurrent,
+                          fx_change_percent: fxChange.toFixed(2),
+                          macroeconomic_effect: macroEffect.toFixed(2),
+                          proposed_adjustment: adjustment.toFixed(2),
+                        });
+                      }}
+                      disabled={fetchingMacroData}
+                    />
+                  </div>
                   
                   <div>
-                    <Label className="text-xs">Total Macro Effect %</Label>
+                    <Label className="text-xs">USD - Local Currency Rate (Last Year)</Label>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      placeholder="e.g., 0.92"
+                      value={formData.fx_rate_previous}
+                      onChange={(e) => {
+                        const newPrevious = e.target.value;
+                        const previous = parseFloat(newPrevious) || 0;
+                        const current = parseFloat(formData.fx_rate_current) || 0;
+                        const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
+                        const inflation = parseFloat(formData.inflation_rate) || 0;
+                        const macroEffect = Math.abs(fxChange) + inflation;
+                        const adjustment = macroEffect * 0.5;
+                        
+                        setFormData({ 
+                          ...formData, 
+                          fx_rate_previous: newPrevious,
+                          fx_change_percent: fxChange.toFixed(2),
+                          macroeconomic_effect: macroEffect.toFixed(2),
+                          proposed_adjustment: adjustment.toFixed(2),
+                        });
+                      }}
+                      disabled={fetchingMacroData}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">FX Change (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.fx_change_percent}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Total Macro Effect (%) = FX Change + Inflation</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={formData.macroeconomic_effect}
                       disabled
+                      className="bg-muted font-semibold"
                     />
                   </div>
+                  
                   <div>
-                    <Label className="text-xs">Proposed Adjustment (50%)</Label>
+                    <Label className="text-xs">Proposed Adjustment (50% of Total)</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={formData.proposed_adjustment}
                       disabled
+                      className="bg-muted font-semibold"
                     />
                   </div>
                 </div>
