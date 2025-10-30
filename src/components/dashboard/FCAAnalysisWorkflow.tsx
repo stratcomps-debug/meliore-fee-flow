@@ -345,6 +345,30 @@ export const FCAAnalysisWorkflow = () => {
 
           {selectedEmployee && (
             <>
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <h4 className="font-semibold">Employee Information</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Current Compa-Ratio:</span>{" "}
+                    <span className="font-medium">
+                      {selectedEmployee.compa_ratio 
+                        ? `${(selectedEmployee.compa_ratio * 100).toFixed(2)}%`
+                        : paybandInfo 
+                          ? (() => {
+                              const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
+                              const cr = midpoint > 0 ? (selectedEmployee.current_salary / midpoint) * 100 : 0;
+                              return `${cr.toFixed(2)}%`;
+                            })()
+                          : "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Job Title:</span>{" "}
+                    <span className="font-medium">{selectedEmployee.job_title || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
               {paybandInfo && (
                 <div className="p-4 bg-muted rounded-lg space-y-2">
                   <h4 className="font-semibold">Payband Information</h4>
@@ -359,16 +383,6 @@ export const FCAAnalysisWorkflow = () => {
                       <span className="text-muted-foreground">WTW Midpoint:</span>{" "}
                       <span className="font-medium">
                         {paybandInfo.wtw_midpoint ? Math.ceil(paybandInfo.wtw_midpoint).toLocaleString() : "N/A"} {selectedEmployee.currency}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Current Compa-Ratio:</span>{" "}
-                      <span className="font-medium">
-                        {(() => {
-                          const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
-                          const cr = midpoint > 0 ? (selectedEmployee.current_salary / midpoint) * 100 : 0;
-                          return Math.ceil(cr).toLocaleString() + "%";
-                        })()}
                       </span>
                     </div>
                     <div>
