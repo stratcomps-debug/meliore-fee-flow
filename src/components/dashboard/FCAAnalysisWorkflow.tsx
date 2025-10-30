@@ -362,6 +362,16 @@ export const FCAAnalysisWorkflow = () => {
                       </span>
                     </div>
                     <div>
+                      <span className="text-muted-foreground">Current Compa-Ratio:</span>{" "}
+                      <span className="font-medium">
+                        {(() => {
+                          const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
+                          const cr = midpoint > 0 ? (selectedEmployee.current_salary / midpoint) * 100 : 0;
+                          return Math.ceil(cr).toLocaleString() + "%";
+                        })()}
+                      </span>
+                    </div>
+                    <div>
                       <span className="text-muted-foreground">Effective Date:</span>{" "}
                       <span className="font-medium">
                         {paybandInfo.effective_date ? new Date(paybandInfo.effective_date).toLocaleDateString() : "N/A"}
