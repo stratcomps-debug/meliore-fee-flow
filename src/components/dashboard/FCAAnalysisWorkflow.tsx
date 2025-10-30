@@ -110,6 +110,16 @@ export const FCAAnalysisWorkflow = () => {
     setSelectedEmployee(employee);
 
     if (employee) {
+      // Determine contract type from employee data
+      const contractType = employee.raw_data?.employment_condition?.toLowerCase().includes("consultancy") 
+        ? "consultancy" 
+        : "employee";
+
+      // For consultancy, budget is minimum 6% increase of current fee
+      const budgetAmount = contractType === "consultancy" 
+        ? (employee.current_salary * 1.06).toFixed(2)
+        : "";
+
       // Fetch payband midpoint for this employee
       const { data: paybandData } = await supabase
         .from("payband_midpoints")
@@ -125,16 +135,10 @@ export const FCAAnalysisWorkflow = () => {
       setFormData((prev) => ({
         ...prev,
         proposed_salary: employee.current_salary?.toString() || "",
+        budget_amount: budgetAmount,
         performance_rating: employee.performance_rating || "",
-        contract_type: employee.raw_data?.employment_condition?.toLowerCase().includes("consultancy") 
-          ? "consultancy" 
-          : "employee",
+        contract_type: contractType,
       }));
-
-      // Determine contract type from employee data
-      const contractType = employee.raw_data?.employment_condition?.toLowerCase().includes("consultancy") 
-        ? "consultancy" 
-        : "employee";
 
       // Fetch macroeconomic data
       await fetchMacroeconomicData(employee.currency, employee.country, contractType);
@@ -223,8 +227,8 @@ export const FCAAnalysisWorkflow = () => {
         "Employee Name": selectedEmployee.employee_name,
         "Country": selectedEmployee.country,
         "Level": selectedEmployee.level,
-        "Current Salary": selectedEmployee.current_salary,
-        "Proposed Salary": formData.proposed_salary,
+        [`Current ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}`]: selectedEmployee.current_salary,
+        [`Proposed ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}`]: formData.proposed_salary,
         "Currency": selectedEmployee.currency,
         "Contract Type": formData.contract_type,
         "Inflation Rate": formData.inflation_rate,
@@ -262,8 +266,12 @@ export const FCAAnalysisWorkflow = () => {
             new Paragraph({ text: `Employee: ${selectedEmployee.employee_name}` }),
             new Paragraph({ text: `Country: ${selectedEmployee.country}` }),
             new Paragraph({ text: `Level: ${selectedEmployee.level}` }),
-            new Paragraph({ text: `Current Salary: ${selectedEmployee.current_salary} ${selectedEmployee.currency}` }),
-            new Paragraph({ text: `Proposed Salary: ${formData.proposed_salary} ${selectedEmployee.currency}` }),
+            new Paragraph({ 
+              text: `Current ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}: ${selectedEmployee.current_salary} ${selectedEmployee.currency}` 
+            }),
+            new Paragraph({ 
+              text: `Proposed ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}: ${formData.proposed_salary} ${selectedEmployee.currency}` 
+            }),
             new Paragraph({ text: "" }),
             new Paragraph({ text: `Rationale: ${formData.rationale}` }),
             new Paragraph({ text: `Recommendation: ${formData.recommendation}` }),
@@ -330,11 +338,11 @@ export const FCAAnalysisWorkflow = () => {
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Current Salary</Label>
+                  <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
                   <Input value={selectedEmployee.current_salary} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Proposed Salary</Label>
+                  <Label>Proposed {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
                   <Input
                     type="number"
                     value={formData.proposed_salary}
@@ -342,13 +350,20 @@ export const FCAAnalysisWorkflow = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Budget Amount</Label>
+                  <Label>
+                    Budget Amount {formData.contract_type === "consultancy" && "(Min 6% increase)"}
+                  </Label>
                   <Input
                     type="number"
                     placeholder="Approved budget"
                     value={formData.budget_amount}
                     onChange={(e) => setFormData({ ...formData, budget_amount: e.target.value })}
                   />
+                  {formData.contract_type === "consultancy" && selectedEmployee && (
+                    <p className="text-xs text-muted-foreground">
+                      Minimum: {(selectedEmployee.current_salary * 1.06).toLocaleString()} {selectedEmployee.currency}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -543,7 +558,7 @@ export const FCAAnalysisWorkflow = () => {
               <div className="space-y-2">
                 <Label>Rationale</Label>
                 <Textarea
-                  placeholder="Explain the reasoning for this fee/salary change"
+                  placeholder={`Explain the reasoning for this ${formData.contract_type === "consultancy" ? "fee" : "salary"} change`}
                   value={formData.rationale}
                   onChange={(e) => setFormData({ ...formData, rationale: e.target.value })}
                   rows={4}

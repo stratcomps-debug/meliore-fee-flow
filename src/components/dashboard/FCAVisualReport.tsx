@@ -173,9 +173,14 @@ export const FCAVisualReport = () => {
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  Budgeted fee for this role of {feeApprovalData?.document_content?.budget_amount ? 
+                  Budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of {feeApprovalData?.document_content?.budget_amount ? 
                     `${parseFloat(feeApprovalData.document_content.budget_amount).toLocaleString()} ${selectedAnalysis.currency}` : 
                     `${selectedAnalysis.proposed_salary?.toLocaleString()} ${selectedAnalysis.currency}`} per year.
+                  {selectedAnalysis.contract_type === "consultancy" && (
+                    <span className="text-muted-foreground text-sm block mt-1">
+                      (Minimum 6% increase from current fee)
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
 
@@ -193,7 +198,7 @@ export const FCAVisualReport = () => {
                   
                   {selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, 
                   P&C proposes to pay {selectedAnalysis.proposed_salary?.toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {selectedAnalysis.compa_ratio_proposed?.toFixed(0)}%. 
-                  This is within the budgeted fee for this role.
+                  This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
                   
                   {selectedAnalysis.rationale ? `\n\nRationale: ${selectedAnalysis.rationale}` : ''}"
                 </TableCell>
