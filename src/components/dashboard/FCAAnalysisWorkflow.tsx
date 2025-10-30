@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { differenceInMonths, differenceInYears } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,10 +30,32 @@ export const FCAAnalysisWorkflow = () => {
     fx_year: new Date().getFullYear().toString(),
     performance_rating: "",
     merit_increase: 0,
-    years_in_role: "",
     rationale: "",
     recommendation: "",
   });
+  
+  const calculateYearsWithOrganisation = (hireDate: string | null): string => {
+    if (!hireDate) return "N/A";
+    
+    const start = new Date(hireDate);
+    const today = new Date();
+    
+    const years = differenceInYears(today, start);
+    const totalMonths = differenceInMonths(today, start);
+    const months = totalMonths - (years * 12);
+    
+    return `${years} years and ${months} months`;
+  };
+  
+  const calculateYearsInRoleNumeric = (hireDate: string | null): number | null => {
+    if (!hireDate) return null;
+    
+    const start = new Date(hireDate);
+    const today = new Date();
+    const totalMonths = differenceInMonths(today, start);
+    
+    return Math.round((totalMonths / 12) * 10) / 10; // Round to 1 decimal place
+  };
   const [paybandInfo, setPaybandInfo] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [fetchingMacroData, setFetchingMacroData] = useState(false);
@@ -238,7 +261,7 @@ export const FCAAnalysisWorkflow = () => {
           fx_rate: parseFloat(formData.fx_rate_current) || null,
           fx_year: new Date().getFullYear().toString(),
           performance_rating: formData.performance_rating,
-          years_in_role: parseFloat(formData.years_in_role) || null,
+          years_in_role: calculateYearsInRoleNumeric(selectedEmployee.hire_date),
           rationale: formData.rationale,
           recommendation: formData.recommendation,
           humanforce_record_id: selectedEmployee.id,
@@ -289,7 +312,7 @@ export const FCAAnalysisWorkflow = () => {
         "Macroeconomic Effect %": formData.macroeconomic_effect,
         "Proposed Adjustment %": formData.proposed_adjustment,
         "Performance Rating": formData.performance_rating,
-        "Years in Role": formData.years_in_role,
+        "Years with Organisation": selectedEmployee.hire_date ? calculateYearsWithOrganisation(selectedEmployee.hire_date) : "N/A",
         "Rationale": formData.rationale,
         "Recommendation": formData.recommendation,
       },
@@ -363,11 +386,11 @@ export const FCAAnalysisWorkflow = () => {
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Years in Role</Label>
+                  <Label>Years with the Organisation</Label>
                   <Input
-                    type="number"
-                    value={formData.years_in_role}
-                    onChange={(e) => setFormData({ ...formData, years_in_role: e.target.value })}
+                    value={selectedEmployee.hire_date ? calculateYearsWithOrganisation(selectedEmployee.hire_date) : "N/A"}
+                    disabled
+                    className="bg-muted"
                   />
                 </div>
                 <div className="space-y-2">
