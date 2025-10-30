@@ -133,9 +133,14 @@ export const FCAAnalysisWorkflow = () => {
 
       setPaybandInfo(paybandData);
       
-      // Calculate compa-ratio using employee's current data
-      const midpoint = paybandData?.kf_midpoint || paybandData?.wtw_midpoint || 0;
-      const currentCompaRatio = midpoint > 0 ? employee.current_salary / midpoint : 0;
+      // Use compa-ratio from employee data if available, otherwise calculate it
+      let currentCompaRatio = 0;
+      if (employee.compa_ratio) {
+        currentCompaRatio = employee.compa_ratio;
+      } else {
+        const midpoint = paybandData?.kf_midpoint || paybandData?.wtw_midpoint || 0;
+        currentCompaRatio = midpoint > 0 ? employee.current_salary / midpoint : 0;
+      }
       
       // Calculate merit increase if performance rating exists
       const meritIncrease = employee.performance_rating 
@@ -608,8 +613,14 @@ export const FCAAnalysisWorkflow = () => {
                     value={formData.performance_rating || ""}
                     onValueChange={(value) => {
                       // Calculate merit increase when performance rating changes
-                      const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
-                      const currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
+                      // Use the compa_ratio from HumanForce data if available, otherwise calculate it
+                      let currentCompaRatio = 0;
+                      if (selectedEmployee.compa_ratio) {
+                        currentCompaRatio = selectedEmployee.compa_ratio;
+                      } else {
+                        const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
+                        currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
+                      }
                       const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
                       
                       setFormData({ 
