@@ -463,6 +463,67 @@ export const FCAAnalysisWorkflow = () => {
               </div>
 
               <div className="p-4 bg-muted rounded-lg space-y-3">
+                <h4 className="font-semibold">
+                  {formData.contract_type === "consultancy" ? "SOW Assessment" : "Performance Assessment"}
+                </h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>
+                      {formData.contract_type === "consultancy" ? "SOW Rating" : "Performance Rating"}
+                    </Label>
+                    <Select
+                      value={formData.performance_rating || ""}
+                      onValueChange={(value) => {
+                        // Calculate merit increase when performance rating changes
+                        // Use the compa_ratio from HumanForce data if available, otherwise calculate it
+                        let currentCompaRatio = 0;
+                        if (selectedEmployee.compa_ratio) {
+                          currentCompaRatio = selectedEmployee.compa_ratio;
+                        } else {
+                          const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
+                          currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
+                        }
+                        const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
+                        
+                        setFormData({ 
+                          ...formData, 
+                          performance_rating: value,
+                          merit_increase: meritIncrease
+                        });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select rating" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="BE">BE - Below Expectations</SelectItem>
+                        <SelectItem value="OI">OI - Opportunity for Improvement</SelectItem>
+                        <SelectItem value="ME">ME - Meets Expectations</SelectItem>
+                        <SelectItem value="EE">EE - Exceeds Expectations</SelectItem>
+                        <SelectItem value="O">O - Outstanding</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs">
+                      {formData.contract_type === "consultancy" 
+                        ? "SOW Assessment Related Increase (%)" 
+                        : "Performance Related Increase (%)"}
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.merit_increase || "0"}
+                      disabled
+                      className="bg-muted font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-muted rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h4 className="font-semibold">Macroeconomic Analysis</h4>
@@ -501,6 +562,17 @@ export const FCAAnalysisWorkflow = () => {
                       value={formData.inflation_rate}
                       onChange={(e) => setFormData({ ...formData, inflation_rate: e.target.value })}
                       disabled={fetchingMacroData}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Proposed Adjustment (50% of Total)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.proposed_adjustment}
+                      disabled
+                      className="bg-muted font-semibold"
                     />
                   </div>
                   
@@ -592,61 +664,10 @@ export const FCAAnalysisWorkflow = () => {
                       className="bg-muted font-semibold"
                     />
                   </div>
-                  
-                  <div>
-                    <Label className="text-xs">Proposed Adjustment (50% of Total)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.proposed_adjustment}
-                      disabled
-                      className="bg-muted font-semibold"
-                    />
-                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Performance Rating</Label>
-                  <Select
-                    value={formData.performance_rating || ""}
-                    onValueChange={(value) => {
-                      // Calculate merit increase when performance rating changes
-                      // Use the compa_ratio from HumanForce data if available, otherwise calculate it
-                      let currentCompaRatio = 0;
-                      if (selectedEmployee.compa_ratio) {
-                        currentCompaRatio = selectedEmployee.compa_ratio;
-                      } else {
-                        const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
-                        currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
-                      }
-                      const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
-                      
-                      setFormData({ 
-                        ...formData, 
-                        performance_rating: value,
-                        merit_increase: meritIncrease
-                      });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select rating" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BE">BE - Below Expectations</SelectItem>
-                      <SelectItem value="OI">OI - Opportunity for Improvement</SelectItem>
-                      <SelectItem value="ME">ME - Meets Expectations</SelectItem>
-                      <SelectItem value="EE">EE - Exceeds Expectations</SelectItem>
-                      <SelectItem value="O">O - Outstanding</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {formData.performance_rating && (
-                    <p className="text-sm text-muted-foreground">
-                      Merit Increase: {formData.merit_increase}%
-                    </p>
-                  )}
-                </div>
                 <div className="space-y-2">
                   <Label>Years Experience</Label>
                   <Input
