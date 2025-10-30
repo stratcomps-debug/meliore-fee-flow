@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, FileText, History, Database } from "lucide-react";
+import { Upload, FileText, History, Database, Eye } from "lucide-react";
 import { PaybandUpload } from "@/components/dashboard/PaybandUpload";
 import { HumanForceUpload } from "@/components/dashboard/HumanForceUpload";
 import { FCAAnalysisWorkflow } from "@/components/dashboard/FCAAnalysisWorkflow";
 import { HistoricalData } from "@/components/dashboard/HistoricalData";
+import { FCAVisualReport } from "@/components/dashboard/FCAVisualReport";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -55,10 +56,14 @@ export default function Dashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="analysis" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="analysis" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               New Analysis
+            </TabsTrigger>
+            <TabsTrigger value="visual" className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              View Reports
             </TabsTrigger>
             <TabsTrigger value="humanforce" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
@@ -76,6 +81,10 @@ export default function Dashboard() {
 
           <TabsContent value="analysis" className="mt-6">
             <FCAAnalysisWorkflow />
+          </TabsContent>
+
+          <TabsContent value="visual" className="mt-6">
+            <FCAVisualReport />
           </TabsContent>
 
           <TabsContent value="humanforce" className="mt-6">
