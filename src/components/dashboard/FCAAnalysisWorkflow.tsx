@@ -57,68 +57,14 @@ export const FCAAnalysisWorkflow = () => {
   const fetchMacroeconomicData = async (currency: string, country: string) => {
     setFetchingMacroData(true);
     try {
-      const currentYear = new Date().getFullYear();
-      const previousYear = currentYear - 1;
-      
-      // Currency code mapping
-      const currencyMap: Record<string, string> = {
-        "USD": "USD",
-        "EUR": "EUR",
-        "GBP": "GBP",
-        "KRW": "KRW",
-        "INR": "INR",
-        "BRL": "BRL",
-        "MXN": "MXN",
-        "IDR": "IDR",
-        "PHP": "PHP",
-        "AUD": "AUD",
-      };
+      // Call edge function to fetch data (bypasses CORS)
+      const { data, error } = await supabase.functions.invoke('fetch-macro-data', {
+        body: { currency, country }
+      });
 
-      const currencyCode = currencyMap[currency] || currency;
-      
-      // Fetch FX rates (skip if USD)
-      let fxRateCurrent = 1;
-      let fxRatePrevious = 1;
-      let fxChangePercent = 0;
-      
-      if (currency !== "USD") {
-        const fxUrlCurrent = `https://www.exchangerates.org.uk/USD-${currencyCode}-spot-exchange-rates-history-${currentYear}.html`;
-        const fxUrlPrevious = `https://www.exchangerates.org.uk/USD-${currencyCode}-spot-exchange-rates-history-${previousYear}.html`;
-        
-        try {
-          const [currentResponse, previousResponse] = await Promise.all([
-            fetch(fxUrlCurrent).then(r => r.text()),
-            fetch(fxUrlPrevious).then(r => r.text())
-          ]);
-          
-          // Extract average rates from the HTML
-          const currentMatch = currentResponse.match(/Average exchange rate in \d+:\s*([\d.]+)/);
-          const previousMatch = previousResponse.match(/Average exchange rate in \d+:\s*([\d.]+)/);
-          
-          if (currentMatch && previousMatch) {
-            fxRateCurrent = parseFloat(currentMatch[1]);
-            fxRatePrevious = parseFloat(previousMatch[1]);
-            fxChangePercent = ((fxRateCurrent - fxRatePrevious) / fxRatePrevious) * 100;
-          }
-        } catch (error) {
-          console.error("Error fetching FX rates:", error);
-        }
-      }
+      if (error) throw error;
 
-      // Fetch inflation rate from Trading Economics
-      let inflationRate = 0;
-      const inflationUrl = `https://tradingeconomics.com/${country.toLowerCase()}/inflation-cpi`;
-      
-      try {
-        const inflationResponse = await fetch(inflationUrl).then(r => r.text());
-        const inflationMatch = inflationResponse.match(/Last\s*<\/td>\s*<td[^>]*>\s*([\d.]+)/i);
-        
-        if (inflationMatch) {
-          inflationRate = parseFloat(inflationMatch[1]);
-        }
-      } catch (error) {
-        console.error("Error fetching inflation rate:", error);
-      }
+      const { inflationRate, fxRateCurrent, fxRatePrevious, fxChangePercent } = data;
 
       // Calculate macroeconomic effect and proposed adjustment
       const macroEffect = Math.abs(fxChangePercent) + inflationRate;
@@ -139,9 +85,10 @@ export const FCAAnalysisWorkflow = () => {
         description: `Inflation: ${inflationRate.toFixed(2)}%, FX Change: ${fxChangePercent.toFixed(2)}%` 
       });
     } catch (error: any) {
+      console.error("Error fetching macroeconomic data:", error);
       toast({ 
-        title: "Error fetching macroeconomic data", 
-        description: error.message, 
+        title: "Could not fetch macroeconomic data", 
+        description: "Please enter the values manually", 
         variant: "destructive" 
       });
     } finally {
