@@ -20,7 +20,11 @@ export const FCAAnalysisWorkflow = () => {
     budget_amount: "",
     contract_type: "employee",
     inflation_rate: "",
-    fx_rate: "",
+    fx_rate_current: "",
+    fx_rate_previous: "",
+    fx_change_percent: "",
+    macroeconomic_effect: "",
+    proposed_adjustment: "",
     fx_year: new Date().getFullYear().toString(),
     performance_rating: "",
     years_experience: "",
@@ -30,6 +34,7 @@ export const FCAAnalysisWorkflow = () => {
   });
   const [paybandInfo, setPaybandInfo] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchingMacroData, setFetchingMacroData] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,6 +51,101 @@ export const FCAAnalysisWorkflow = () => {
       toast({ title: "Error loading employees", variant: "destructive" });
     } else {
       setEmployees(data || []);
+    }
+  };
+
+  const fetchMacroeconomicData = async (currency: string, country: string) => {
+    setFetchingMacroData(true);
+    try {
+      const currentYear = new Date().getFullYear();
+      const previousYear = currentYear - 1;
+      
+      // Currency code mapping
+      const currencyMap: Record<string, string> = {
+        "USD": "USD",
+        "EUR": "EUR",
+        "GBP": "GBP",
+        "KRW": "KRW",
+        "INR": "INR",
+        "BRL": "BRL",
+        "MXN": "MXN",
+        "IDR": "IDR",
+        "PHP": "PHP",
+        "AUD": "AUD",
+      };
+
+      const currencyCode = currencyMap[currency] || currency;
+      
+      // Fetch FX rates (skip if USD)
+      let fxRateCurrent = 1;
+      let fxRatePrevious = 1;
+      let fxChangePercent = 0;
+      
+      if (currency !== "USD") {
+        const fxUrlCurrent = `https://www.exchangerates.org.uk/USD-${currencyCode}-spot-exchange-rates-history-${currentYear}.html`;
+        const fxUrlPrevious = `https://www.exchangerates.org.uk/USD-${currencyCode}-spot-exchange-rates-history-${previousYear}.html`;
+        
+        try {
+          const [currentResponse, previousResponse] = await Promise.all([
+            fetch(fxUrlCurrent).then(r => r.text()),
+            fetch(fxUrlPrevious).then(r => r.text())
+          ]);
+          
+          // Extract average rates from the HTML
+          const currentMatch = currentResponse.match(/Average exchange rate in \d+:\s*([\d.]+)/);
+          const previousMatch = previousResponse.match(/Average exchange rate in \d+:\s*([\d.]+)/);
+          
+          if (currentMatch && previousMatch) {
+            fxRateCurrent = parseFloat(currentMatch[1]);
+            fxRatePrevious = parseFloat(previousMatch[1]);
+            fxChangePercent = ((fxRateCurrent - fxRatePrevious) / fxRatePrevious) * 100;
+          }
+        } catch (error) {
+          console.error("Error fetching FX rates:", error);
+        }
+      }
+
+      // Fetch inflation rate from Trading Economics
+      let inflationRate = 0;
+      const inflationUrl = `https://tradingeconomics.com/${country.toLowerCase()}/inflation-cpi`;
+      
+      try {
+        const inflationResponse = await fetch(inflationUrl).then(r => r.text());
+        const inflationMatch = inflationResponse.match(/Last\s*<\/td>\s*<td[^>]*>\s*([\d.]+)/i);
+        
+        if (inflationMatch) {
+          inflationRate = parseFloat(inflationMatch[1]);
+        }
+      } catch (error) {
+        console.error("Error fetching inflation rate:", error);
+      }
+
+      // Calculate macroeconomic effect and proposed adjustment
+      const macroEffect = Math.abs(fxChangePercent) + inflationRate;
+      const proposedAdjustment = macroEffect * 0.5;
+
+      setFormData((prev) => ({
+        ...prev,
+        inflation_rate: inflationRate.toFixed(2),
+        fx_rate_current: fxRateCurrent.toFixed(4),
+        fx_rate_previous: fxRatePrevious.toFixed(4),
+        fx_change_percent: fxChangePercent.toFixed(2),
+        macroeconomic_effect: macroEffect.toFixed(2),
+        proposed_adjustment: proposedAdjustment.toFixed(2),
+      }));
+
+      toast({ 
+        title: "Macroeconomic data fetched", 
+        description: `Inflation: ${inflationRate.toFixed(2)}%, FX Change: ${fxChangePercent.toFixed(2)}%` 
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "Error fetching macroeconomic data", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setFetchingMacroData(false);
     }
   };
 
@@ -71,6 +171,9 @@ export const FCAAnalysisWorkflow = () => {
         proposed_salary: employee.current_salary?.toString() || "",
         performance_rating: employee.performance_rating || "",
       }));
+
+      // Fetch macroeconomic data
+      await fetchMacroeconomicData(employee.currency, employee.country);
     }
   };
 
@@ -112,8 +215,8 @@ export const FCAAnalysisWorkflow = () => {
           compa_ratio_current: compaRatioCurrent,
           compa_ratio_proposed: compaRatioProposed,
           inflation_rate: parseFloat(formData.inflation_rate) || null,
-          fx_rate: parseFloat(formData.fx_rate) || null,
-          fx_year: formData.fx_year,
+          fx_rate: parseFloat(formData.fx_rate_current) || null,
+          fx_year: new Date().getFullYear().toString(),
           performance_rating: formData.performance_rating,
           years_experience: parseFloat(formData.years_experience) || null,
           years_in_role: parseFloat(formData.years_in_role) || null,
@@ -161,7 +264,11 @@ export const FCAAnalysisWorkflow = () => {
         "Currency": selectedEmployee.currency,
         "Contract Type": formData.contract_type,
         "Inflation Rate": formData.inflation_rate,
-        "FX Rate": formData.fx_rate,
+        "FX Rate Current": formData.fx_rate_current,
+        "FX Rate Previous": formData.fx_rate_previous,
+        "FX Change %": formData.fx_change_percent,
+        "Macroeconomic Effect %": formData.macroeconomic_effect,
+        "Proposed Adjustment %": formData.proposed_adjustment,
         "Performance Rating": formData.performance_rating,
         "Years Experience": formData.years_experience,
         "Rationale": formData.rationale,
@@ -297,39 +404,80 @@ export const FCAAnalysisWorkflow = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Inflation Rate (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="From tradingeconomics.com"
-                    value={formData.inflation_rate}
-                    onChange={(e) => setFormData({ ...formData, inflation_rate: e.target.value })}
-                  />
-                </div>
               </div>
 
-              {formData.contract_type === "consultancy" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>FX Rate (vs USD)</Label>
+              <div className="p-4 bg-muted rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Macroeconomic Analysis</h4>
+                  {fetchingMacroData && <span className="text-sm text-muted-foreground">Fetching data...</span>}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <Label className="text-xs">Inflation Rate (12 months)</Label>
                     <Input
                       type="number"
-                      step="0.0001"
-                      placeholder="From exchangerates.org.uk"
-                      value={formData.fx_rate}
-                      onChange={(e) => setFormData({ ...formData, fx_rate: e.target.value })}
+                      step="0.01"
+                      value={formData.inflation_rate}
+                      onChange={(e) => setFormData({ ...formData, inflation_rate: e.target.value })}
+                      disabled={fetchingMacroData}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>FX Year</Label>
+                  
+                  {selectedEmployee?.currency !== "USD" && (
+                    <>
+                      <div>
+                        <Label className="text-xs">FX Rate {new Date().getFullYear()}</Label>
+                        <Input
+                          type="number"
+                          step="0.0001"
+                          value={formData.fx_rate_current}
+                          onChange={(e) => setFormData({ ...formData, fx_rate_current: e.target.value })}
+                          disabled={fetchingMacroData}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">FX Rate {new Date().getFullYear() - 1}</Label>
+                        <Input
+                          type="number"
+                          step="0.0001"
+                          value={formData.fx_rate_previous}
+                          onChange={(e) => setFormData({ ...formData, fx_rate_previous: e.target.value })}
+                          disabled={fetchingMacroData}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">FX Change %</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.fx_change_percent}
+                          disabled
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  <div>
+                    <Label className="text-xs">Total Macro Effect %</Label>
                     <Input
-                      value={formData.fx_year}
-                      onChange={(e) => setFormData({ ...formData, fx_year: e.target.value })}
+                      type="number"
+                      step="0.01"
+                      value={formData.macroeconomic_effect}
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Proposed Adjustment (50%)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.proposed_adjustment}
+                      disabled
                     />
                   </div>
                 </div>
-              )}
+              </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">

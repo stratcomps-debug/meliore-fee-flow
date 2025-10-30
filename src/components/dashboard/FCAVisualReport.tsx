@@ -10,6 +10,7 @@ export const FCAVisualReport = () => {
   const [analyses, setAnalyses] = useState<any[]>([]);
   const [selectedAnalysis, setSelectedAnalysis] = useState<any>(null);
   const [cohortData, setCohortData] = useState<any>(null);
+  const [feeApprovalData, setFeeApprovalData] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,6 +43,15 @@ export const FCAVisualReport = () => {
         .eq("level", analysis.level);
 
       setCohortData(cohortMembers || []);
+
+      // Fetch fee approval data
+      const { data: feeApproval } = await supabase
+        .from("fee_approvals")
+        .select("*")
+        .eq("fca_analysis_id", analysis.id)
+        .maybeSingle();
+
+      setFeeApprovalData(feeApproval);
     }
   };
 
@@ -163,7 +173,9 @@ export const FCAVisualReport = () => {
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  Budgeted fee for this role of {selectedAnalysis.proposed_salary?.toLocaleString()} {selectedAnalysis.currency} per year.
+                  Budgeted fee for this role of {feeApprovalData?.document_content?.budget_amount ? 
+                    `${parseFloat(feeApprovalData.document_content.budget_amount).toLocaleString()} ${selectedAnalysis.currency}` : 
+                    `${selectedAnalysis.proposed_salary?.toLocaleString()} ${selectedAnalysis.currency}`} per year.
                 </TableCell>
               </TableRow>
 
@@ -247,13 +259,49 @@ export const FCAVisualReport = () => {
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  "According to the latest Trading economics data, the 12 months Inflation rate in {selectedAnalysis.country} is {selectedAnalysis.inflation_rate || 'N/A'}%.
-                  {selectedAnalysis.fx_rate && selectedAnalysis.fx_year ? 
-                    `\n\nOn average in ${selectedAnalysis.fx_year}, 1 USD allowed our staff members to obtain ${selectedAnalysis.fx_rate} ${selectedAnalysis.currency}.` 
-                    : ''}
-                  
-                  The effect of macroeconomic elements on the purchasing power of staff members in {selectedAnalysis.country} 
-                  {selectedAnalysis.inflation_rate ? ` reflects an inflation rate of ${selectedAnalysis.inflation_rate}%.` : ' is being monitored.'}"
+                  {(() => {
+                    const docContent = feeApprovalData?.document_content;
+                    const fxCurrent = docContent?.formData?.fx_rate_current;
+                    const fxPrevious = docContent?.formData?.fx_rate_previous;
+                    const fxChange = docContent?.formData?.fx_change_percent;
+                    const inflationRate = selectedAnalysis.inflation_rate;
+                    const macroEffect = docContent?.formData?.macroeconomic_effect;
+                    const proposedAdj = docContent?.formData?.proposed_adjustment;
+                    const currentYear = new Date().getFullYear();
+                    const previousYear = currentYear - 1;
+                    
+                    return (
+                      <div className="space-y-2">
+                        <p>
+                          "According to the latest Trading Economics data, the 12 months Inflation rate in{" "}
+                          {selectedAnalysis.country} is {inflationRate || "N/A"}% in {currentYear}.
+                        </p>
+                        {selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious && (
+                          <>
+                            <p>
+                              On average in {currentYear}, 1 USD allowed our staff members to obtain{" "}
+                              {fxCurrent} {selectedAnalysis.currency}.
+                            </p>
+                            <p>
+                              On average in {previousYear}, 1 USD allowed our staff members to obtain{" "}
+                              {fxPrevious} {selectedAnalysis.currency}.
+                            </p>
+                            <p>
+                              In conclusion: on average in {currentYear}, 1 USD allowed our staff members to obtain{" "}
+                              {parseFloat(fxChange || "0") > 0 ? "more" : "less"} {selectedAnalysis.currency} than in {previousYear}{" "}
+                              ({Math.abs(parseFloat(fxChange || "0")).toFixed(2)}% {parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).
+                            </p>
+                          </>
+                        )}
+                        {macroEffect && proposedAdj && (
+                          <p className="font-semibold">
+                            The total macroeconomic effect (Inflation + FX fluctuation) is {macroEffect}%.
+                            Meliore proposes to cover 50% of this effect, resulting in a {proposedAdj}% salary adjustment."
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </TableCell>
               </TableRow>
 
