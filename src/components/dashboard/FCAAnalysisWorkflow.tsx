@@ -163,12 +163,20 @@ export const FCAAnalysisWorkflow = () => {
 
   const calculateMeritIncrease = (performanceRating: string, compaRatio: number): number => {
     // Performance rating to merit increase mapping based on CR ranges
-    const meritIncreaseTable: Record<string, { below95: number, between95and105: number, above105: number }> = {
-      'BE': { below95: 0, between95and105: 0, above105: 0 },
-      'OI': { below95: 0, between95and105: 0, above105: 0 },
-      'ME': { below95: 2, between95and105: 1, above105: 0 },
-      'EE': { below95: 3.5, between95and105: 2.75, above105: 2 },
-      'O': { below95: 5, between95and105: 4.25, above105: 3.5 }
+    // From the provided table with columns: Performance rating, Min increase, Max increase, 
+    // merit increase if CR < 95%, merit increase if CR 95-105%, merit increase if CR > 105%
+    const meritIncreaseTable: Record<string, { 
+      min: number, 
+      max: number, 
+      below95: number, 
+      between95and105: number, 
+      above105: number 
+    }> = {
+      'BE': { min: 0, max: 0, below95: 0, between95and105: 0, above105: 0 },
+      'OI': { min: 0, max: 0, below95: 0, between95and105: 0, above105: 0 },
+      'ME': { min: 0, max: 2, below95: 2, between95and105: 1, above105: 0 },
+      'EE': { min: 2, max: 3.5, below95: 3.5, between95and105: 2.75, above105: 2 },
+      'O': { min: 3.5, max: 5, below95: 5, between95and105: 4.25, above105: 3.5 }
     };
 
     const rating = meritIncreaseTable[performanceRating];
