@@ -54,12 +54,12 @@ export const FCAAnalysisWorkflow = () => {
     }
   };
 
-  const fetchMacroeconomicData = async (currency: string, country: string) => {
+  const fetchMacroeconomicData = async (currency: string, country: string, contractType: string) => {
     setFetchingMacroData(true);
     try {
       // Call edge function to fetch data (bypasses CORS)
       const { data, error } = await supabase.functions.invoke('fetch-macro-data', {
-        body: { currency, country }
+        body: { currency, country, contractType }
       });
 
       if (error) throw error;
@@ -117,10 +117,18 @@ export const FCAAnalysisWorkflow = () => {
         ...prev,
         proposed_salary: employee.current_salary?.toString() || "",
         performance_rating: employee.performance_rating || "",
+        contract_type: employee.raw_data?.employment_condition?.toLowerCase().includes("consultancy") 
+          ? "consultancy" 
+          : "employee",
       }));
 
+      // Determine contract type from employee data
+      const contractType = employee.raw_data?.employment_condition?.toLowerCase().includes("consultancy") 
+        ? "consultancy" 
+        : "employee";
+
       // Fetch macroeconomic data
-      await fetchMacroeconomicData(employee.currency, employee.country);
+      await fetchMacroeconomicData(employee.currency, employee.country, contractType);
     }
   };
 

@@ -11,11 +11,46 @@ serve(async (req) => {
   }
 
   try {
-    const { currency, country } = await req.json();
-    console.log(`Fetching macro data for ${country} (${currency})`);
+    const { currency, country, contractType } = await req.json();
+    console.log(`Fetching macro data for ${country} (${currency}, ${contractType})`);
     
     const currentYear = new Date().getFullYear();
     const previousYear = currentYear - 1;
+    
+    // Map countries to their local currencies
+    const countryToCurrency: Record<string, string> = {
+      "Luxembourg": "EUR",
+      "France": "EUR",
+      "Germany": "EUR",
+      "Spain": "EUR",
+      "Italy": "EUR",
+      "Netherlands": "EUR",
+      "Belgium": "EUR",
+      "Austria": "EUR",
+      "Portugal": "EUR",
+      "Ireland": "EUR",
+      "USA": "USD",
+      "United States": "USD",
+      "Canada": "CAD",
+      "Australia": "AUD",
+      "Brazil": "BRL",
+      "India": "INR",
+      "Indonesia": "IDR",
+      "Philippines": "PHP",
+      "South Korea": "KRW",
+      "Mexico": "MXN",
+      "Argentina": "ARS",
+      "UK": "GBP",
+      "United Kingdom": "GBP",
+    };
+    
+    // For consultancy contracts, always use the local currency for FX calculations
+    // even though they're paid in USD
+    const fxCurrency = contractType === "consultancy" 
+      ? (countryToCurrency[country] || currency)
+      : currency;
+    
+    console.log(`Using FX currency: ${fxCurrency} (contract type: ${contractType})`);
     
     let result = {
       inflationRate: 0,
@@ -24,20 +59,21 @@ serve(async (req) => {
       fxChangePercent: 0,
     };
 
-    // Fetch FX rates using exchangerate.host API (free, no key required)
-    if (currency !== "USD") {
+    // Fetch FX rates - for consultancy, always fetch even if currency is USD
+    // because we need to track USD purchasing power in local currency
+    if (fxCurrency !== "USD") {
       try {
-        console.log(`Fetching FX rates for ${currency}...`);
+        console.log(`Fetching FX rates for USD to ${fxCurrency}...`);
         
         // Get current year average
         const currentYearStart = `${currentYear}-01-01`;
         const currentYearEnd = `${currentYear}-12-31`;
-        const currentUrl = `https://api.exchangerate.host/timeseries?start_date=${currentYearStart}&end_date=${currentYearEnd}&base=USD&symbols=${currency}`;
+        const currentUrl = `https://api.exchangerate.host/timeseries?start_date=${currentYearStart}&end_date=${currentYearEnd}&base=USD&symbols=${fxCurrency}`;
         
         // Get previous year average
         const previousYearStart = `${previousYear}-01-01`;
         const previousYearEnd = `${previousYear}-12-31`;
-        const previousUrl = `https://api.exchangerate.host/timeseries?start_date=${previousYearStart}&end_date=${previousYearEnd}&base=USD&symbols=${currency}`;
+        const previousUrl = `https://api.exchangerate.host/timeseries?start_date=${previousYearStart}&end_date=${previousYearEnd}&base=USD&symbols=${fxCurrency}`;
         
         const [currentResponse, previousResponse] = await Promise.all([
           fetch(currentUrl),
@@ -51,13 +87,13 @@ serve(async (req) => {
         
         // Calculate average rates
         if (currentData.success && currentData.rates) {
-          const currentRates = Object.values(currentData.rates).map((day: any) => day[currency]);
+          const currentRates = Object.values(currentData.rates).map((day: any) => day[fxCurrency]);
           result.fxRateCurrent = currentRates.reduce((a: number, b: number) => a + b, 0) / currentRates.length;
           console.log(`Current FX rate: ${result.fxRateCurrent}`);
         }
         
         if (previousData.success && previousData.rates) {
-          const previousRates = Object.values(previousData.rates).map((day: any) => day[currency]);
+          const previousRates = Object.values(previousData.rates).map((day: any) => day[fxCurrency]);
           result.fxRatePrevious = previousRates.reduce((a: number, b: number) => a + b, 0) / previousRates.length;
           console.log(`Previous FX rate: ${result.fxRatePrevious}`);
         }
