@@ -148,95 +148,125 @@ export const FCAVisualReport = () => {
           new Paragraph({
             text: `${selectedAnalysis.employee_name} - ${selectedAnalysis.country} - Level ${selectedAnalysis.level}`,
             alignment: AlignmentType.CENTER,
+            spacing: { after: 400 },
+          }),
+          
+          // Budgeted Amount
+          new Paragraph({
+            children: [new TextRun({ text: "Budgeted Amount", bold: true, size: 28 })],
+            spacing: { before: 200, after: 100 },
+          }),
+          new Paragraph({
+            text: `Budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of ${feeApprovalData?.document_content?.budget_amount ? 
+              `${Math.ceil(parseFloat(feeApprovalData.document_content.budget_amount)).toLocaleString()} ${selectedAnalysis.currency}` : 
+              `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`} per year.${selectedAnalysis.contract_type === "consultancy" ? " (Minimum 6% increase from current fee)" : ""}`,
             spacing: { after: 200 },
           }),
-          new DocxTable({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            rows: [
-              new DocxTableRow({
-                children: [
-                  new DocxTableCell({
-                    children: [new Paragraph({ children: [new TextRun({ text: "Factors", bold: true })] })],
-                    width: { size: 40, type: WidthType.PERCENTAGE },
-                  }),
-                  new DocxTableCell({
-                    children: [new Paragraph({ children: [new TextRun({ text: "Analysis", bold: true })] })],
-                    width: { size: 60, type: WidthType.PERCENTAGE },
-                  }),
-                ],
-              }),
-              new DocxTableRow({
-                children: [
-                  new DocxTableCell({
-                    children: [new Paragraph("What is the approved budgeted amount confirmed by Finance Manager")],
-                  }),
-                  new DocxTableCell({
-                    children: [new Paragraph(
-                      `Budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year.`
-                    )],
-                  }),
-                ],
-              }),
-              new DocxTableRow({
-                children: [
-                  new DocxTableCell({
-                    children: [new Paragraph("Link of proposed offer to our compensation & comparatio philosophy")],
-                  }),
-                  new DocxTableCell({
-                    children: [new Paragraph(
-                      `Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency} (which is also 100% Compa-ratio). The source of the data is ${dataSource} and values date from ${currentYear}. ${selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`
-                    )],
-                  }),
-                ],
-              }),
-              new DocxTableRow({
-                children: [
-                  new DocxTableCell({
-                    children: [new Paragraph("Equity Distance Analysis")],
-                  }),
-                  new DocxTableCell({
-                    children: [new Paragraph(
-                      `We currently have ${cohortData?.length || 0} staff members on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${cohortData?.length || 0} staff members is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance is ${Math.ceil(equityDistance.proposed)}%.`
-                    )],
-                  }),
-                ],
-              }),
-              new DocxTableRow({
-                children: [
-                  new DocxTableCell({
-                    children: [new Paragraph("Average Compa-Ratio")],
-                  }),
-                  new DocxTableCell({
-                    children: [new Paragraph(
-                      `The average Compa-Ratio for all staff on a Meliore Grading level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(avgCompaRatio.current)}%. The average Compa-Ratio becomes ${Math.ceil(avgCompaRatio.proposed)}% with this proposition.`
-                    )],
-                  }),
-                ],
-              }),
-              new DocxTableRow({
-                children: [
-                  new DocxTableCell({
-                    children: [new Paragraph("Gender Gap Analysis")],
-                  }),
-                  new DocxTableCell({
-                    children: [new Paragraph(getGenderGapAnalysis())],
-                  }),
-                ],
-              }),
-              new DocxTableRow({
-                children: [
-                  new DocxTableCell({
-                    children: [new Paragraph("Macroeconomic Analysis")],
-                  }),
-                  new DocxTableCell({
-                    children: [new Paragraph(
-                      `According to the latest Trading Economics data, the 12 months Inflation rate in ${selectedAnalysis.country} is ${selectedAnalysis.inflation_rate || "N/A"}% in ${currentYear}. ${macroEffect && proposedAdj ? `The total macroeconomic effect (Inflation + FX fluctuation) is ${Math.ceil(parseFloat(macroEffect))}%. Meliore proposes to cover 50% of this effect, resulting in a ${Math.ceil(parseFloat(proposedAdj))}% salary adjustment.` : ''}`
-                    )],
-                  }),
-                ],
-              }),
-            ],
+
+          // Compensation Philosophy
+          new Paragraph({
+            children: [new TextRun({ text: "Compensation Philosophy & Proposed Salary", bold: true, size: 28 })],
+            spacing: { before: 200, after: 100 },
           }),
+          new Paragraph({
+            text: `Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency} (which is also 100% Compa-ratio). The source of the data is ${dataSource} and values date from ${currentYear}.`,
+            spacing: { after: 100 },
+          }),
+          new Paragraph({
+            text: `${selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+            spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
+          }),
+          ...(selectedAnalysis.rationale ? [
+            new Paragraph({
+              text: `Rationale: ${selectedAnalysis.rationale}`,
+              spacing: { after: 200 },
+            })
+          ] : []),
+
+          // Equity Distance
+          new Paragraph({
+            children: [new TextRun({ text: "Equity Distance Analysis", bold: true, size: 28 })],
+            spacing: { before: 200, after: 100 },
+          }),
+          new Paragraph({
+            text: `We currently have ${cohortData?.length || 0} staff members on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${cohortData?.length || 0} staff members is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance is ${Math.ceil(equityDistance.proposed)}%.`,
+            spacing: { after: 200 },
+          }),
+
+          // Cohort Analysis
+          new Paragraph({
+            children: [new TextRun({ text: "Cohort Reference Group", bold: true, size: 28 })],
+            spacing: { before: 200, after: 100 },
+          }),
+          new Paragraph({
+            text: `From the staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortData?.length || 0} staff members are currently in this cohort.`,
+            spacing: { after: 200 },
+          }),
+
+          // Average Compa-Ratio
+          new Paragraph({
+            children: [new TextRun({ text: "Average Compa-Ratio", bold: true, size: 28 })],
+            spacing: { before: 200, after: 100 },
+          }),
+          new Paragraph({
+            text: `The average Compa-Ratio for all staff on a Meliore Grading level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(avgCompaRatio.current)}%. The average Compa-Ratio becomes ${Math.ceil(avgCompaRatio.proposed)}% with this proposition.`,
+            spacing: { after: 200 },
+          }),
+
+          // Gender Gap
+          new Paragraph({
+            children: [new TextRun({ text: "Gender Gap Analysis", bold: true, size: 28 })],
+            spacing: { before: 200, after: 100 },
+          }),
+          new Paragraph({
+            text: getGenderGapAnalysis(),
+            spacing: { after: 200 },
+          }),
+
+          // Macroeconomic Analysis
+          new Paragraph({
+            children: [new TextRun({ text: "Macroeconomic Analysis", bold: true, size: 28 })],
+            spacing: { before: 200, after: 100 },
+          }),
+          new Paragraph({
+            text: `According to the latest Trading Economics data, the 12 months Inflation rate in ${selectedAnalysis.country} is ${selectedAnalysis.inflation_rate || "N/A"}% in ${currentYear}.`,
+            spacing: { after: 100 },
+          }),
+          ...(selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious ? [
+            new Paragraph({
+              text: `On average in ${currentYear}, 1 USD allowed our staff members to obtain ${fxCurrent} ${selectedAnalysis.currency}.`,
+              spacing: { after: 100 },
+            }),
+            new Paragraph({
+              text: `On average in ${previousYear}, 1 USD allowed our staff members to obtain ${fxPrevious} ${selectedAnalysis.currency}.`,
+              spacing: { after: 100 },
+            }),
+            new Paragraph({
+              text: `In conclusion: on average in ${currentYear}, 1 USD allowed our staff members to obtain ${parseFloat(fxChange || "0") > 0 ? "more" : "less"} ${selectedAnalysis.currency} than in ${previousYear} (${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).`,
+              spacing: { after: 100 },
+            })
+          ] : []),
+          ...(macroEffect && proposedAdj ? [
+            new Paragraph({
+              children: [new TextRun({ 
+                text: `The total macroeconomic effect (Inflation + FX fluctuation) is ${Math.ceil(parseFloat(macroEffect))}%. Meliore proposes to cover 50% of this effect, resulting in a ${Math.ceil(parseFloat(proposedAdj))}% salary adjustment.`,
+                bold: true 
+              })],
+              spacing: { after: 200 },
+            })
+          ] : []),
+
+          // Recommendation
+          ...(selectedAnalysis.recommendation ? [
+            new Paragraph({
+              children: [new TextRun({ text: "Recommendation", bold: true, size: 28 })],
+              spacing: { before: 200, after: 100 },
+            }),
+            new Paragraph({
+              text: selectedAnalysis.recommendation,
+              spacing: { after: 200 },
+            })
+          ] : []),
         ],
       }],
     });
@@ -257,6 +287,15 @@ export const FCAVisualReport = () => {
     const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
     const equityDistance = calculateEquityDistance();
     const avgCompaRatio = calculateAverageCompaRatio();
+    const currentYear = new Date().getFullYear();
+    const previousYear = currentYear - 1;
+
+    const docContent = feeApprovalData?.document_content;
+    const fxCurrent = docContent?.formData?.fx_rate_current;
+    const fxPrevious = docContent?.formData?.fx_rate_previous;
+    const fxChange = docContent?.formData?.fx_change_percent;
+    const macroEffect = docContent?.formData?.macroeconomic_effect;
+    const proposedAdj = docContent?.formData?.proposed_adjustment;
 
     // Fetch humanforce record to get hire_date
     const getHumanForceData = async () => {
@@ -264,49 +303,75 @@ export const FCAVisualReport = () => {
         .from("humanforce_data")
         .select("*")
         .eq("id", selectedAnalysis.humanforce_record_id)
-        .single();
+        .maybeSingle();
       return data;
     };
 
     getHumanForceData().then((humanforceData) => {
-      const exportData = {
-        "Employee Information": {
-          "Employee Name": selectedAnalysis.employee_name,
-          "Country": selectedAnalysis.country,
-          "Level": selectedAnalysis.level,
-          "Contract Type": selectedAnalysis.contract_type,
-          "Staff Start Date": humanforceData?.hire_date ? new Date(humanforceData.hire_date).toLocaleDateString() : "N/A",
-          "Years with Organisation": humanforceData?.hire_date ? calculateYearsWithOrganisation(humanforceData.hire_date) : "N/A",
-        },
-        "Salary Information": {
-          "Current Salary": `${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency}`,
-          "Proposed Salary": `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`,
-          "Midpoint": `${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency}`,
-          "Data Source": dataSource,
-          "Current Compa-Ratio": `${Math.ceil(selectedAnalysis.compa_ratio_current)}%`,
-          "Proposed Compa-Ratio": `${Math.ceil(selectedAnalysis.compa_ratio_proposed)}%`,
-        },
-        "Analysis": {
-          "Cohort Size": cohortData?.length || 0,
-          "Current Equity Distance": `${Math.ceil(equityDistance.current)}%`,
-          "Proposed Equity Distance": `${Math.ceil(equityDistance.proposed)}%`,
-          "Current Avg Compa-Ratio": `${Math.ceil(avgCompaRatio.current)}%`,
-          "Proposed Avg Compa-Ratio": `${Math.ceil(avgCompaRatio.proposed)}%`,
-          "Gender Gap": getGenderGapAnalysis(),
-          "Inflation Rate": `${selectedAnalysis.inflation_rate || "N/A"}%`,
-          "Performance Rating": selectedAnalysis.performance_rating,
-          "Rationale": selectedAnalysis.rationale,
-          "Recommendation": selectedAnalysis.recommendation,
-        },
-      };
+      const exportData = [
+        { Section: "FCA ANALYSIS REPORT", Details: "" },
+        { Section: "Employee", Details: selectedAnalysis.employee_name },
+        { Section: "Country", Details: selectedAnalysis.country },
+        { Section: "Level", Details: selectedAnalysis.level },
+        { Section: "Staff Start Date", Details: humanforceData?.hire_date ? new Date(humanforceData.hire_date).toLocaleDateString() : "N/A" },
+        { Section: "Years with Organisation", Details: humanforceData?.hire_date ? calculateYearsWithOrganisation(humanforceData.hire_date) : "N/A" },
+        { Section: "", Details: "" },
+        
+        { Section: "BUDGETED AMOUNT", Details: "" },
+        { Section: "Analysis", Details: `Budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year.${selectedAnalysis.contract_type === "consultancy" ? " (Minimum 6% increase from current fee)" : ""}` },
+        { Section: "", Details: "" },
+        
+        { Section: "COMPENSATION PHILOSOPHY", Details: "" },
+        { Section: "Market Data Source", Details: dataSource },
+        { Section: "75th Percentile (100% CR)", Details: `${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency}` },
+        { Section: "Current Salary", Details: `${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency}` },
+        { Section: "Proposed Salary", Details: `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}` },
+        { Section: "Current Compa-Ratio", Details: `${Math.ceil(selectedAnalysis.compa_ratio_current)}%` },
+        { Section: "Proposed Compa-Ratio", Details: `${Math.ceil(selectedAnalysis.compa_ratio_proposed)}%` },
+        { Section: "Rationale", Details: selectedAnalysis.rationale || "N/A" },
+        { Section: "", Details: "" },
+        
+        { Section: "EQUITY DISTANCE ANALYSIS", Details: "" },
+        { Section: "Cohort Size", Details: cohortData?.length || 0 },
+        { Section: "Current Equity Distance", Details: `${Math.ceil(equityDistance.current)}%` },
+        { Section: "Proposed Equity Distance", Details: `${Math.ceil(equityDistance.proposed)}%` },
+        { Section: "", Details: "" },
+        
+        { Section: "AVERAGE COMPA-RATIO", Details: "" },
+        { Section: "Current Average CR", Details: `${Math.ceil(avgCompaRatio.current)}%` },
+        { Section: "Proposed Average CR", Details: `${Math.ceil(avgCompaRatio.proposed)}%` },
+        { Section: "", Details: "" },
+        
+        { Section: "GENDER GAP ANALYSIS", Details: "" },
+        { Section: "Analysis", Details: getGenderGapAnalysis() },
+        { Section: "", Details: "" },
+        
+        { Section: "MACROECONOMIC ANALYSIS", Details: "" },
+        { Section: "Inflation Rate", Details: `${selectedAnalysis.inflation_rate || "N/A"}%` },
+        ...(selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious ? [
+          { Section: `FX Rate ${currentYear}`, Details: `${fxCurrent} ${selectedAnalysis.currency}` },
+          { Section: `FX Rate ${previousYear}`, Details: `${fxPrevious} ${selectedAnalysis.currency}` },
+          { Section: "FX Change", Details: `${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}` },
+        ] : []),
+        ...(macroEffect && proposedAdj ? [
+          { Section: "Total Macro Effect", Details: `${Math.ceil(parseFloat(macroEffect))}%` },
+          { Section: "Proposed Adjustment (50%)", Details: `${Math.ceil(parseFloat(proposedAdj))}%` },
+        ] : []),
+        { Section: "", Details: "" },
+        
+        ...(selectedAnalysis.recommendation ? [
+          { Section: "RECOMMENDATION", Details: "" },
+          { Section: "Analysis", Details: selectedAnalysis.recommendation },
+        ] : []),
+      ];
 
-      const ws = XLSX.utils.json_to_sheet([
-        exportData["Employee Information"],
-        {},
-        exportData["Salary Information"],
-        {},
-        exportData["Analysis"],
-      ], { skipHeader: true });
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 30 },  // Section column
+        { wch: 80 },  // Details column
+      ];
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "FCA Report");
