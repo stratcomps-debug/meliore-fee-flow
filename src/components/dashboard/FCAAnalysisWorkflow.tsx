@@ -28,6 +28,7 @@ export const FCAAnalysisWorkflow = () => {
     proposed_adjustment: "",
     fx_year: new Date().getFullYear().toString(),
     performance_rating: "",
+    merit_increase: 0,
     years_experience: "",
     years_in_role: "",
     rationale: "",
@@ -132,11 +133,21 @@ export const FCAAnalysisWorkflow = () => {
 
       setPaybandInfo(paybandData);
       
+      // Calculate compa-ratio using employee's current data
+      const midpoint = paybandData?.kf_midpoint || paybandData?.wtw_midpoint || 0;
+      const currentCompaRatio = midpoint > 0 ? employee.current_salary / midpoint : 0;
+      
+      // Calculate merit increase if performance rating exists
+      const meritIncrease = employee.performance_rating 
+        ? calculateMeritIncrease(employee.performance_rating, currentCompaRatio)
+        : 0;
+      
       setFormData((prev) => ({
         ...prev,
         proposed_salary: employee.current_salary?.toString() || "",
         budget_amount: budgetAmount,
         performance_rating: employee.performance_rating || "",
+        merit_increase: meritIncrease,
         contract_type: contractType,
       }));
 
@@ -148,6 +159,30 @@ export const FCAAnalysisWorkflow = () => {
   const calculateCompaRatio = (salary: number, midpoint: number) => {
     if (!midpoint) return 0;
     return (salary / midpoint) * 100;
+  };
+
+  const calculateMeritIncrease = (performanceRating: string, compaRatio: number): number => {
+    // Performance rating to merit increase mapping based on CR ranges
+    const meritIncreaseTable: Record<string, { below95: number, between95and105: number, above105: number }> = {
+      'BE': { below95: 0, between95and105: 0, above105: 0 },
+      'OI': { below95: 0, between95and105: 0, above105: 0 },
+      'ME': { below95: 2, between95and105: 1, above105: 0 },
+      'EE': { below95: 3.5, between95and105: 2.75, above105: 2 },
+      'O': { below95: 5, between95and105: 4.25, above105: 3.5 }
+    };
+
+    const rating = meritIncreaseTable[performanceRating];
+    if (!rating) return 0;
+
+    const crPercent = compaRatio * 100;
+    
+    if (crPercent < 95) {
+      return rating.below95;
+    } else if (crPercent >= 95 && crPercent <= 105) {
+      return rating.between95and105;
+    } else {
+      return rating.above105;
+    }
   };
 
   const handleSave = async () => {
@@ -532,10 +567,37 @@ export const FCAAnalysisWorkflow = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Performance Rating</Label>
-                  <Input
-                    value={formData.performance_rating}
-                    onChange={(e) => setFormData({ ...formData, performance_rating: e.target.value })}
-                  />
+                  <Select
+                    value={formData.performance_rating || ""}
+                    onValueChange={(value) => {
+                      // Calculate merit increase when performance rating changes
+                      const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
+                      const currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
+                      const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
+                      
+                      setFormData({ 
+                        ...formData, 
+                        performance_rating: value,
+                        merit_increase: meritIncrease
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select rating" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BE">BE - Below Expectations</SelectItem>
+                      <SelectItem value="OI">OI - Opportunity for Improvement</SelectItem>
+                      <SelectItem value="ME">ME - Meets Expectations</SelectItem>
+                      <SelectItem value="EE">EE - Exceeds Expectations</SelectItem>
+                      <SelectItem value="O">O - Outstanding</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formData.performance_rating && (
+                    <p className="text-sm text-muted-foreground">
+                      Merit Increase: {formData.merit_increase}%
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Years Experience</Label>
