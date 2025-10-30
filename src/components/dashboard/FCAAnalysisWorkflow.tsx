@@ -351,7 +351,7 @@ export const FCAAnalysisWorkflow = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>
-                    Budget Amount {formData.contract_type === "consultancy" && "(Min 6% increase)"}
+                    Budget Amount
                   </Label>
                   <Input
                     type="number"
