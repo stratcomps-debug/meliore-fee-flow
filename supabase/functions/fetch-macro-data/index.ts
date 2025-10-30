@@ -12,6 +12,7 @@ serve(async (req) => {
 
   try {
     const { currency, country } = await req.json();
+    console.log(`Fetching macro data for ${country} (${currency})`);
     
     const currentYear = new Date().getFullYear();
     const previousYear = currentYear - 1;
@@ -23,55 +24,100 @@ serve(async (req) => {
       fxChangePercent: 0,
     };
 
-    // Fetch FX rates (skip if USD)
+    // Fetch FX rates using exchangerate.host API (free, no key required)
     if (currency !== "USD") {
-      const fxUrlCurrent = `https://www.exchangerates.org.uk/USD-${currency}-spot-exchange-rates-history-${currentYear}.html`;
-      const fxUrlPrevious = `https://www.exchangerates.org.uk/USD-${currency}-spot-exchange-rates-history-${previousYear}.html`;
-      
       try {
+        console.log(`Fetching FX rates for ${currency}...`);
+        
+        // Get current year average
+        const currentYearStart = `${currentYear}-01-01`;
+        const currentYearEnd = `${currentYear}-12-31`;
+        const currentUrl = `https://api.exchangerate.host/timeseries?start_date=${currentYearStart}&end_date=${currentYearEnd}&base=USD&symbols=${currency}`;
+        
+        // Get previous year average
+        const previousYearStart = `${previousYear}-01-01`;
+        const previousYearEnd = `${previousYear}-12-31`;
+        const previousUrl = `https://api.exchangerate.host/timeseries?start_date=${previousYearStart}&end_date=${previousYearEnd}&base=USD&symbols=${currency}`;
+        
         const [currentResponse, previousResponse] = await Promise.all([
-          fetch(fxUrlCurrent),
-          fetch(fxUrlPrevious)
+          fetch(currentUrl),
+          fetch(previousUrl)
         ]);
         
-        const currentHtml = await currentResponse.text();
-        const previousHtml = await previousResponse.text();
+        const currentData = await currentResponse.json();
+        const previousData = await previousResponse.json();
         
-        // Extract average rates from the HTML
-        const currentMatch = currentHtml.match(/Average exchange rate in \d+:\s*([\d.]+)/);
-        const previousMatch = previousHtml.match(/Average exchange rate in \d+:\s*([\d.]+)/);
+        console.log('FX API responses received');
         
-        if (currentMatch && previousMatch) {
-          result.fxRateCurrent = parseFloat(currentMatch[1]);
-          result.fxRatePrevious = parseFloat(previousMatch[1]);
+        // Calculate average rates
+        if (currentData.success && currentData.rates) {
+          const currentRates = Object.values(currentData.rates).map((day: any) => day[currency]);
+          result.fxRateCurrent = currentRates.reduce((a: number, b: number) => a + b, 0) / currentRates.length;
+          console.log(`Current FX rate: ${result.fxRateCurrent}`);
+        }
+        
+        if (previousData.success && previousData.rates) {
+          const previousRates = Object.values(previousData.rates).map((day: any) => day[currency]);
+          result.fxRatePrevious = previousRates.reduce((a: number, b: number) => a + b, 0) / previousRates.length;
+          console.log(`Previous FX rate: ${result.fxRatePrevious}`);
+        }
+        
+        if (result.fxRateCurrent > 0 && result.fxRatePrevious > 0) {
           result.fxChangePercent = ((result.fxRateCurrent - result.fxRatePrevious) / result.fxRatePrevious) * 100;
+          console.log(`FX change: ${result.fxChangePercent}%`);
         }
       } catch (error) {
         console.error("Error fetching FX rates:", error);
       }
     }
 
-    // Fetch inflation rate from Trading Economics
+    // Fetch inflation rate using World Bank API (free, no key required)
     try {
-      const inflationUrl = `https://tradingeconomics.com/${country.toLowerCase()}/inflation-cpi`;
+      console.log(`Fetching inflation rate for ${country}...`);
+      
+      // World Bank uses country codes (ISO 3166-1 alpha-3)
+      const countryCodeMap: Record<string, string> = {
+        "Luxembourg": "LUX",
+        "France": "FRA",
+        "USA": "USA",
+        "United States": "USA",
+        "Canada": "CAN",
+        "Australia": "AUS",
+        "Brazil": "BRA",
+        "India": "IND",
+        "Indonesia": "IDN",
+        "Philippines": "PHL",
+        "South Korea": "KOR",
+        "Mexico": "MEX",
+        "Argentina": "ARG",
+        "Italy": "ITA",
+        "Spain": "ESP",
+        "Germany": "DEU",
+        "UK": "GBR",
+        "United Kingdom": "GBR",
+      };
+      
+      const countryCode = countryCodeMap[country] || country.substring(0, 3).toUpperCase();
+      const inflationUrl = `https://api.worldbank.org/v2/country/${countryCode}/indicator/FP.CPI.TOTL.ZG?format=json&date=${previousYear}:${currentYear}&per_page=10`;
+      
       const inflationResponse = await fetch(inflationUrl);
-      const inflationHtml = await inflationResponse.text();
+      const inflationData = await inflationResponse.json();
       
-      // Try multiple patterns to extract the inflation rate
-      let inflationMatch = inflationHtml.match(/Last\s*<\/td>\s*<td[^>]*>\s*([\d.]+)/i);
-      if (!inflationMatch) {
-        inflationMatch = inflationHtml.match(/"actual":\s*([\d.]+)/i);
-      }
-      if (!inflationMatch) {
-        inflationMatch = inflationHtml.match(/inflation-cpi.*?(\d+\.?\d*)\s*percent/i);
-      }
+      console.log('Inflation API response received');
       
-      if (inflationMatch) {
-        result.inflationRate = parseFloat(inflationMatch[1]);
+      if (Array.isArray(inflationData) && inflationData.length > 1 && Array.isArray(inflationData[1])) {
+        // Get the most recent data point
+        const latestData = inflationData[1].find((item: any) => item.value !== null);
+        if (latestData && latestData.value !== null) {
+          result.inflationRate = latestData.value;
+          console.log(`Inflation rate: ${result.inflationRate}%`);
+        }
       }
     } catch (error) {
       console.error("Error fetching inflation rate:", error);
     }
+
+    console.log('Final result:', result);
 
     return new Response(
       JSON.stringify(result),
@@ -82,6 +128,7 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Edge function error:', errorMessage);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { 
