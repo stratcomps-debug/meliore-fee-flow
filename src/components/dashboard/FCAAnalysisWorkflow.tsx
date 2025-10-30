@@ -361,7 +361,7 @@ export const FCAAnalysisWorkflow = () => {
                   />
                   {formData.contract_type === "consultancy" && selectedEmployee && (
                     <p className="text-xs text-muted-foreground">
-                      Minimum: {(selectedEmployee.current_salary * 1.06).toLocaleString()} {selectedEmployee.currency}
+                      FYI 6% = {(selectedEmployee.current_salary * 1.06).toLocaleString()} {selectedEmployee.currency}
                     </p>
                   )}
                 </div>
