@@ -9,10 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FileDown, Save, ExternalLink, Info } from "lucide-react";
-import * as XLSX from "xlsx";
-import { Document, Packer, Paragraph, TextRun } from "docx";
-import { saveAs } from "file-saver";
+import { Save, ExternalLink, Info } from "lucide-react";
 
 export const FCAAnalysisWorkflow = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -291,71 +288,6 @@ export const FCAAnalysisWorkflow = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const exportToExcel = () => {
-    if (!selectedEmployee) return;
-
-    const ws = XLSX.utils.json_to_sheet([
-      {
-        "Employee Name": selectedEmployee.employee_name,
-        "Country": selectedEmployee.country,
-        "Level": selectedEmployee.level,
-        [`Current ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}`]: selectedEmployee.current_salary,
-        [`Proposed ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}`]: formData.proposed_salary,
-        "Currency": selectedEmployee.currency,
-        "Contract Type": formData.contract_type,
-        "Inflation Rate": formData.inflation_rate,
-        "FX Rate Current": formData.fx_rate_current,
-        "FX Rate Previous": formData.fx_rate_previous,
-        "FX Change %": formData.fx_change_percent,
-        "Macroeconomic Effect %": formData.macroeconomic_effect,
-        "Proposed Adjustment %": formData.proposed_adjustment,
-        "Performance Rating": formData.performance_rating,
-        "Years with Organisation": selectedEmployee.hire_date ? calculateYearsWithOrganisation(selectedEmployee.hire_date) : "N/A",
-        "Rationale": formData.rationale,
-        "Recommendation": formData.recommendation,
-      },
-    ]);
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "FCA Analysis");
-    XLSX.writeFile(wb, `FCA_Analysis_${selectedEmployee.employee_name}.xlsx`);
-  };
-
-  const exportToWord = async () => {
-    if (!selectedEmployee) return;
-
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({ text: "Fee Approval Document", bold: true, size: 32 }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: `Employee: ${selectedEmployee.employee_name}` }),
-            new Paragraph({ text: `Country: ${selectedEmployee.country}` }),
-            new Paragraph({ text: `Level: ${selectedEmployee.level}` }),
-            new Paragraph({ 
-              text: `Current ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}: ${selectedEmployee.current_salary} ${selectedEmployee.currency}` 
-            }),
-            new Paragraph({ 
-              text: `Proposed ${formData.contract_type === "consultancy" ? "Fee" : "Salary"}: ${formData.proposed_salary} ${selectedEmployee.currency}` 
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: `Rationale: ${formData.rationale}` }),
-            new Paragraph({ text: `Recommendation: ${formData.recommendation}` }),
-          ],
-        },
-      ],
-    });
-
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Fee_Approval_${selectedEmployee.employee_name}.docx`);
   };
 
   return (
@@ -728,20 +660,10 @@ export const FCAAnalysisWorkflow = () => {
                 />
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={loading} className="flex-1">
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Analysis
-                </Button>
-                <Button onClick={exportToExcel} variant="outline">
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Excel
-                </Button>
-                <Button onClick={exportToWord} variant="outline">
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Word
-                </Button>
-              </div>
+              <Button onClick={handleSave} disabled={loading}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Analysis
+              </Button>
             </>
           )}
         </CardContent>
