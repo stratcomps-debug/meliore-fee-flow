@@ -29,7 +29,6 @@ export const FCAAnalysisWorkflow = () => {
     fx_year: new Date().getFullYear().toString(),
     performance_rating: "",
     merit_increase: 0,
-    years_experience: "",
     years_in_role: "",
     rationale: "",
     recommendation: "",
@@ -239,7 +238,6 @@ export const FCAAnalysisWorkflow = () => {
           fx_rate: parseFloat(formData.fx_rate_current) || null,
           fx_year: new Date().getFullYear().toString(),
           performance_rating: formData.performance_rating,
-          years_experience: parseFloat(formData.years_experience) || null,
           years_in_role: parseFloat(formData.years_in_role) || null,
           rationale: formData.rationale,
           recommendation: formData.recommendation,
@@ -291,7 +289,7 @@ export const FCAAnalysisWorkflow = () => {
         "Macroeconomic Effect %": formData.macroeconomic_effect,
         "Proposed Adjustment %": formData.proposed_adjustment,
         "Performance Rating": formData.performance_rating,
-        "Years Experience": formData.years_experience,
+        "Years in Role": formData.years_in_role,
         "Rationale": formData.rationale,
         "Recommendation": formData.recommendation,
       },
@@ -363,6 +361,26 @@ export const FCAAnalysisWorkflow = () => {
 
           {selectedEmployee && (
             <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Years in Role</Label>
+                  <Input
+                    type="number"
+                    value={formData.years_in_role}
+                    onChange={(e) => setFormData({ ...formData, years_in_role: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Staff Start Date</Label>
+                  <Input
+                    type="date"
+                    value={selectedEmployee.hire_date || ""}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
+
               <div className="p-4 bg-muted rounded-lg space-y-2">
                 <h4 className="font-semibold">Employee Information</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -664,25 +682,6 @@ export const FCAAnalysisWorkflow = () => {
                       className="bg-muted font-semibold"
                     />
                   </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Years Experience</Label>
-                  <Input
-                    type="number"
-                    value={formData.years_experience}
-                    onChange={(e) => setFormData({ ...formData, years_experience: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Years in Role</Label>
-                  <Input
-                    type="number"
-                    value={formData.years_in_role}
-                    onChange={(e) => setFormData({ ...formData, years_in_role: e.target.value })}
-                  />
                 </div>
               </div>
 
