@@ -70,7 +70,7 @@ export const FCAVisualReport = () => {
     const minProposed = Math.min(...proposedSalaries);
     const proposedDistance = maxProposed > 0 ? ((maxProposed - minProposed) / maxProposed) * 100 : 0;
     
-    return { current: currentDistance.toFixed(2), proposed: proposedDistance.toFixed(2) };
+    return { current: currentDistance, proposed: proposedDistance };
   };
 
   const calculateAverageCompaRatio = () => {
@@ -82,7 +82,7 @@ export const FCAVisualReport = () => {
     const totalCompa = cohortData.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) + (selectedAnalysis?.compa_ratio_proposed || 0);
     const avgProposed = totalCompa / (cohortData.length + 1);
     
-    return { current: (avgCurrent * 100).toFixed(2), proposed: (avgProposed * 100).toFixed(2) };
+    return { current: avgCurrent * 100, proposed: avgProposed * 100 };
   };
 
   const getGenderGapAnalysis = () => {
@@ -98,7 +98,7 @@ export const FCAVisualReport = () => {
     
     const gap = ((avgMale - avgFemale) / avgMale) * 100;
     
-    return `Gender pay gap: ${gap.toFixed(2)}% (${males.length} males, ${females.length} females)`;
+    return `Gender pay gap: ${Math.ceil(gap)}% (${males.length} males, ${females.length} females)`;
   };
 
   if (!selectedAnalysis) {
@@ -174,8 +174,8 @@ export const FCAVisualReport = () => {
                 </TableCell>
                 <TableCell>
                   Budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of {feeApprovalData?.document_content?.budget_amount ? 
-                    `${parseFloat(feeApprovalData.document_content.budget_amount).toLocaleString()} ${selectedAnalysis.currency}` : 
-                    `${selectedAnalysis.proposed_salary?.toLocaleString()} ${selectedAnalysis.currency}`} per year.
+                    `${Math.ceil(parseFloat(feeApprovalData.document_content.budget_amount)).toLocaleString()} ${selectedAnalysis.currency}` : 
+                    `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`} per year.
                   {selectedAnalysis.contract_type === "consultancy" && (
                     <span className="text-muted-foreground text-sm block mt-1">
                       (Minimum 6% increase from current fee)
@@ -193,11 +193,11 @@ export const FCAVisualReport = () => {
                 </TableCell>
                 <TableCell>
                   "Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. 
-                  The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {midpoint?.toLocaleString()} {selectedAnalysis.currency} 
+                  The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(midpoint).toLocaleString()} {selectedAnalysis.currency} 
                   (which is also 100% Compa-ratio). The source of the data is {dataSource} and values date from {new Date().getFullYear()}.
                   
                   {selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, 
-                  P&C proposes to pay {selectedAnalysis.proposed_salary?.toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {selectedAnalysis.compa_ratio_proposed?.toFixed(0)}%. 
+                  P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. 
                   This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
                   
                   {selectedAnalysis.rationale ? `\n\nRationale: ${selectedAnalysis.rationale}` : ''}"
@@ -213,8 +213,8 @@ export const FCAVisualReport = () => {
                 </TableCell>
                 <TableCell>
                   "We currently have {cohortData?.length || 0} staff members on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country}.
-                  The equity distance for the {cohortData?.length || 0} staff members is {equityDistance.current}%.
-                  If we offer our proposition, the new equity distance is {equityDistance.proposed}%."
+                  The equity distance for the {cohortData?.length || 0} staff members is {Math.ceil(equityDistance.current)}%.
+                  If we offer our proposition, the new equity distance is {Math.ceil(equityDistance.proposed)}%."
                 </TableCell>
               </TableRow>
 
@@ -239,8 +239,8 @@ export const FCAVisualReport = () => {
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  The average Compa-Ratio for all staff on a Meliore Grading level {selectedAnalysis.level} in {selectedAnalysis.country} is {avgCompaRatio.current}%. 
-                  The average Compa-Ratio becomes {avgCompaRatio.proposed}% with this proposition.
+                  The average Compa-Ratio for all staff on a Meliore Grading level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(avgCompaRatio.current)}%. 
+                  The average Compa-Ratio becomes {Math.ceil(avgCompaRatio.proposed)}% with this proposition.
                 </TableCell>
               </TableRow>
 
@@ -291,19 +291,19 @@ export const FCAVisualReport = () => {
                               On average in {previousYear}, 1 USD allowed our staff members to obtain{" "}
                               {fxPrevious} {selectedAnalysis.currency}.
                             </p>
-                            <p>
-                              In conclusion: on average in {currentYear}, 1 USD allowed our staff members to obtain{" "}
-                              {parseFloat(fxChange || "0") > 0 ? "more" : "less"} {selectedAnalysis.currency} than in {previousYear}{" "}
-                              ({Math.abs(parseFloat(fxChange || "0")).toFixed(2)}% {parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).
-                            </p>
+                             <p>
+                               In conclusion: on average in {currentYear}, 1 USD allowed our staff members to obtain{" "}
+                               {parseFloat(fxChange || "0") > 0 ? "more" : "less"} {selectedAnalysis.currency} than in {previousYear}{" "}
+                               ({Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).
+                             </p>
                           </>
                         )}
-                        {macroEffect && proposedAdj && (
-                          <p className="font-semibold">
-                            The total macroeconomic effect (Inflation + FX fluctuation) is {macroEffect}%.
-                            Meliore proposes to cover 50% of this effect, resulting in a {proposedAdj}% salary adjustment."
-                          </p>
-                        )}
+                         {macroEffect && proposedAdj && (
+                           <p className="font-semibold">
+                             The total macroeconomic effect (Inflation + FX fluctuation) is {Math.ceil(parseFloat(macroEffect))}%.
+                             Meliore proposes to cover 50% of this effect, resulting in a {Math.ceil(parseFloat(proposedAdj))}% salary adjustment."
+                           </p>
+                         )}
                       </div>
                     );
                   })()}

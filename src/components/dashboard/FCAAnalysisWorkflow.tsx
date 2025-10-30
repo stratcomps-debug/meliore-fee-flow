@@ -117,7 +117,7 @@ export const FCAAnalysisWorkflow = () => {
 
       // For consultancy, budget is minimum 6% increase of current fee
       const budgetAmount = contractType === "consultancy" 
-        ? (employee.current_salary * 1.06).toFixed(2)
+        ? Math.ceil(employee.current_salary * 1.06).toString()
         : "";
 
       // Fetch payband midpoint for this employee
@@ -317,13 +317,13 @@ export const FCAAnalysisWorkflow = () => {
                     <div>
                       <span className="text-muted-foreground">KF Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.kf_midpoint?.toLocaleString() || "N/A"} {selectedEmployee.currency}
+                        {paybandInfo.kf_midpoint ? Math.ceil(paybandInfo.kf_midpoint).toLocaleString() : "N/A"} {selectedEmployee.currency}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">WTW Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.wtw_midpoint?.toLocaleString() || "N/A"} {selectedEmployee.currency}
+                        {paybandInfo.wtw_midpoint ? Math.ceil(paybandInfo.wtw_midpoint).toLocaleString() : "N/A"} {selectedEmployee.currency}
                       </span>
                     </div>
                     <div>
@@ -361,7 +361,7 @@ export const FCAAnalysisWorkflow = () => {
                   />
                   {formData.contract_type === "consultancy" && selectedEmployee && (
                     <p className="text-xs text-muted-foreground">
-                      FYI 6% = {(selectedEmployee.current_salary * 1.06).toLocaleString()} {selectedEmployee.currency}
+                      FYI 6% = {Math.ceil(selectedEmployee.current_salary * 1.06).toLocaleString()} {selectedEmployee.currency}
                     </p>
                   )}
                 </div>
