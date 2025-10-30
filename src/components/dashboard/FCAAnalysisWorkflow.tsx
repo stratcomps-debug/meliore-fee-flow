@@ -17,6 +17,7 @@ export const FCAAnalysisWorkflow = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [formData, setFormData] = useState({
     proposed_salary: "",
+    budget_amount: "",
     contract_type: "employee",
     inflation_rate: "",
     fx_rate: "",
@@ -27,6 +28,7 @@ export const FCAAnalysisWorkflow = () => {
     rationale: "",
     recommendation: "",
   });
+  const [paybandInfo, setPaybandInfo] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -60,15 +62,15 @@ export const FCAAnalysisWorkflow = () => {
         .eq("level", employee.level)
         .order("effective_date", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (paybandData) {
-        setFormData((prev) => ({
-          ...prev,
-          proposed_salary: employee.current_salary?.toString() || "",
-          performance_rating: employee.performance_rating || "",
-        }));
-      }
+      setPaybandInfo(paybandData);
+      
+      setFormData((prev) => ({
+        ...prev,
+        proposed_salary: employee.current_salary?.toString() || "",
+        performance_rating: employee.performance_rating || "",
+      }));
     }
   };
 
@@ -122,12 +124,20 @@ export const FCAAnalysisWorkflow = () => {
         .select()
         .single();
 
+      // Store budget_amount in the fee_approvals document_content for now
+      // (we can add it to fca_analyses table later if needed)
+
       if (error) throw error;
 
       await supabase.from("fee_approvals").insert({
         fca_analysis_id: analysis.id,
         status: "draft",
-        document_content: { employee: selectedEmployee, formData, analysis },
+        document_content: { 
+          employee: selectedEmployee, 
+          formData, 
+          analysis,
+          budget_amount: formData.budget_amount,
+        },
       });
 
       toast({ title: "FCA Analysis saved successfully!" });
@@ -221,7 +231,33 @@ export const FCAAnalysisWorkflow = () => {
 
           {selectedEmployee && (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              {paybandInfo && (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <h4 className="font-semibold">Payband Information</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">KF Midpoint:</span>{" "}
+                      <span className="font-medium">
+                        {paybandInfo.kf_midpoint?.toLocaleString() || "N/A"} {selectedEmployee.currency}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">WTW Midpoint:</span>{" "}
+                      <span className="font-medium">
+                        {paybandInfo.wtw_midpoint?.toLocaleString() || "N/A"} {selectedEmployee.currency}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Effective Date:</span>{" "}
+                      <span className="font-medium">
+                        {paybandInfo.effective_date ? new Date(paybandInfo.effective_date).toLocaleDateString() : "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Current Salary</Label>
                   <Input value={selectedEmployee.current_salary} disabled />
@@ -232,6 +268,15 @@ export const FCAAnalysisWorkflow = () => {
                     type="number"
                     value={formData.proposed_salary}
                     onChange={(e) => setFormData({ ...formData, proposed_salary: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Budget Amount</Label>
+                  <Input
+                    type="number"
+                    placeholder="Approved budget"
+                    value={formData.budget_amount}
+                    onChange={(e) => setFormData({ ...formData, budget_amount: e.target.value })}
                   />
                 </div>
               </div>
