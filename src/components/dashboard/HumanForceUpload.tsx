@@ -54,7 +54,7 @@ export const HumanForceUpload = () => {
         job_title: row["Job Position Title"] || row.Job_Position_Title,
         current_salary: parseFloat(row["Base Annual Salary"] || row.Base_Annual_Salary || 0),
         currency: extractCurrency(row["Base Annual Salary"]),
-        hire_date: row["Job Start Date"] || row.Job_Start_Date,
+        hire_date: convertExcelDate(row["Job Start Date"] || row.Job_Start_Date),
         performance_rating: row["Performance Rating"] || null,
         compa_ratio: parseFloat(row.CR || 0),
         raw_data: {
@@ -97,6 +97,16 @@ export const HumanForceUpload = () => {
     if (str.includes("kr") || str.includes("SEK")) return "SEK";
     if (str.includes("zł") || str.includes("PLN")) return "PLN";
     return "USD";
+  };
+
+  const convertExcelDate = (excelDate: any): string | null => {
+    if (!excelDate) return null;
+    // If it's already a string date, return it
+    if (typeof excelDate === 'string') return excelDate;
+    // Convert Excel serial number to JavaScript Date
+    // Excel dates are days since 1900-01-01 (with a leap year bug)
+    const date = new Date((excelDate - 25569) * 86400 * 1000);
+    return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
   };
 
   return (
