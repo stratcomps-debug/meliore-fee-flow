@@ -14,7 +14,247 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fca_analyses: {
+        Row: {
+          approval_date: string | null
+          approved: boolean | null
+          compa_ratio_current: number | null
+          compa_ratio_proposed: number | null
+          contract_type: string | null
+          country: string
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          current_salary: number | null
+          employee_name: string
+          fx_rate: number | null
+          fx_year: string | null
+          humanforce_record_id: string | null
+          id: string
+          inflation_rate: number | null
+          kf_midpoint: number | null
+          level: string
+          performance_rating: string | null
+          proposed_salary: number | null
+          rationale: string | null
+          recommendation: string | null
+          updated_at: string
+          wtw_midpoint: number | null
+          years_experience: number | null
+          years_in_role: number | null
+        }
+        Insert: {
+          approval_date?: string | null
+          approved?: boolean | null
+          compa_ratio_current?: number | null
+          compa_ratio_proposed?: number | null
+          contract_type?: string | null
+          country: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          current_salary?: number | null
+          employee_name: string
+          fx_rate?: number | null
+          fx_year?: string | null
+          humanforce_record_id?: string | null
+          id?: string
+          inflation_rate?: number | null
+          kf_midpoint?: number | null
+          level: string
+          performance_rating?: string | null
+          proposed_salary?: number | null
+          rationale?: string | null
+          recommendation?: string | null
+          updated_at?: string
+          wtw_midpoint?: number | null
+          years_experience?: number | null
+          years_in_role?: number | null
+        }
+        Update: {
+          approval_date?: string | null
+          approved?: boolean | null
+          compa_ratio_current?: number | null
+          compa_ratio_proposed?: number | null
+          contract_type?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          current_salary?: number | null
+          employee_name?: string
+          fx_rate?: number | null
+          fx_year?: string | null
+          humanforce_record_id?: string | null
+          id?: string
+          inflation_rate?: number | null
+          kf_midpoint?: number | null
+          level?: string
+          performance_rating?: string | null
+          proposed_salary?: number | null
+          rationale?: string | null
+          recommendation?: string | null
+          updated_at?: string
+          wtw_midpoint?: number | null
+          years_experience?: number | null
+          years_in_role?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fca_analyses_humanforce_record_id_fkey"
+            columns: ["humanforce_record_id"]
+            isOneToOne: false
+            referencedRelation: "humanforce_data"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_approvals: {
+        Row: {
+          approved_by_arantxa: boolean | null
+          approved_by_brian: boolean | null
+          approved_by_casely: boolean | null
+          approved_by_tim: boolean | null
+          created_at: string
+          document_content: Json | null
+          fca_analysis_id: string | null
+          id: string
+          status: string | null
+          submitted_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_by_arantxa?: boolean | null
+          approved_by_brian?: boolean | null
+          approved_by_casely?: boolean | null
+          approved_by_tim?: boolean | null
+          created_at?: string
+          document_content?: Json | null
+          fca_analysis_id?: string | null
+          id?: string
+          status?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_by_arantxa?: boolean | null
+          approved_by_brian?: boolean | null
+          approved_by_casely?: boolean | null
+          approved_by_tim?: boolean | null
+          created_at?: string
+          document_content?: Json | null
+          fca_analysis_id?: string | null
+          id?: string
+          status?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_approvals_fca_analysis_id_fkey"
+            columns: ["fca_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "fca_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      humanforce_data: {
+        Row: {
+          compa_ratio: number | null
+          country: string
+          currency: string | null
+          current_salary: number | null
+          employee_id: string | null
+          employee_name: string
+          hire_date: string | null
+          id: string
+          job_title: string | null
+          level: string | null
+          performance_rating: string | null
+          raw_data: Json | null
+          upload_batch_id: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          compa_ratio?: number | null
+          country: string
+          currency?: string | null
+          current_salary?: number | null
+          employee_id?: string | null
+          employee_name: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          level?: string | null
+          performance_rating?: string | null
+          raw_data?: Json | null
+          upload_batch_id: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          compa_ratio?: number | null
+          country?: string
+          currency?: string | null
+          current_salary?: number | null
+          employee_id?: string | null
+          employee_name?: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          level?: string | null
+          performance_rating?: string | null
+          raw_data?: Json | null
+          upload_batch_id?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      payband_midpoints: {
+        Row: {
+          country: string
+          currency: string | null
+          effective_date: string
+          id: string
+          job_family: string | null
+          kf_midpoint: number | null
+          level: string
+          notes: string | null
+          uploaded_at: string
+          uploaded_by: string | null
+          wtw_midpoint: number | null
+        }
+        Insert: {
+          country: string
+          currency?: string | null
+          effective_date: string
+          id?: string
+          job_family?: string | null
+          kf_midpoint?: number | null
+          level: string
+          notes?: string | null
+          uploaded_at?: string
+          uploaded_by?: string | null
+          wtw_midpoint?: number | null
+        }
+        Update: {
+          country?: string
+          currency?: string | null
+          effective_date?: string
+          id?: string
+          job_family?: string | null
+          kf_midpoint?: number | null
+          level?: string
+          notes?: string | null
+          uploaded_at?: string
+          uploaded_by?: string | null
+          wtw_midpoint?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
