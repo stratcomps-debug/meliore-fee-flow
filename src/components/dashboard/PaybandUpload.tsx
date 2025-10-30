@@ -29,43 +29,68 @@ export const PaybandUpload = () => {
     try {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
-      const sheetName = "Pay Bands - midpoints";
-      const worksheet = workbook.Sheets[sheetName];
-      
-      if (!worksheet) {
-        throw new Error("Pay Bands - midpoints sheet not found");
-      }
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
       
-      // Parse headers and data (columns B-BX for KF, BZ-DO for WTW)
-      const headers = jsonData[0];
-      const rows = jsonData.slice(1);
+      // First row contains country names, second row contains Bottom/Midpoint/Top
+      const countryRow = jsonData[0];
+      const typeRow = jsonData[1];
+      
+      // Data starts from row 3 (index 2)
+      const dataRows = jsonData.slice(2);
 
       const records = [];
-      for (const row of rows) {
+      
+      // Process each level row
+      for (const row of dataRows) {
         if (!row[0]) continue; // Skip empty rows
         
-        const country = row[0];
-        const level = row[1];
+        const level = row[0]; // Meliore Grading level
         
-        // Extract KF and WTW midpoints based on column positions
-        // This is simplified - you'll need to map actual column positions
-        records.push({
-          country,
-          level,
-          kf_midpoint: row[2], // Adjust column index
-          wtw_midpoint: row[3], // Adjust column index
-          currency: row[4] || "USD",
-          effective_date: new Date().toISOString().split('T')[0],
-        });
+        // Process each country (every 3 columns: Bottom, Midpoint, Top)
+        for (let i = 1; i < countryRow.length; i += 3) {
+          const country = countryRow[i];
+          if (!country) continue;
+          
+          // Extract currency from the midpoint value (if it has a symbol)
+          const midpointValue = row[i + 1]; // Midpoint is middle column
+          let currency = "USD";
+          let numericMidpoint = 0;
+          
+          if (midpointValue) {
+            const valueStr = String(midpointValue);
+            // Detect currency symbols
+            if (valueStr.includes("€")) currency = "EUR";
+            else if (valueStr.includes("£")) currency = "GBP";
+            else if (valueStr.includes("kr")) currency = "DKK/SEK/NOK";
+            else if (valueStr.includes("zł")) currency = "PLN";
+            else if (valueStr.includes("₺")) currency = "TRY";
+            else if (valueStr.includes("$")) currency = "USD/AUD/CAD";
+            
+            // Extract numeric value
+            numericMidpoint = parseFloat(valueStr.replace(/[^0-9.-]/g, ""));
+          }
+          
+          records.push({
+            country: country.trim(),
+            level: String(level),
+            kf_midpoint: numericMidpoint || null,
+            wtw_midpoint: null, // Will update based on data source
+            currency,
+            effective_date: new Date().toISOString().split('T')[0],
+          });
+        }
       }
 
       const { error } = await supabase.from("payband_midpoints").insert(records);
 
       if (error) throw error;
 
-      toast({ title: "Pay band data uploaded successfully!" });
+      toast({ 
+        title: "Pay band data uploaded successfully!",
+        description: `${records.length} pay band records imported.`
+      });
       setFile(null);
     } catch (error: any) {
       toast({
