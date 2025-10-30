@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FileDown, Save } from "lucide-react";
+import { FileDown, Save, ExternalLink, Info } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
@@ -94,6 +95,15 @@ export const FCAAnalysisWorkflow = () => {
     } finally {
       setFetchingMacroData(false);
     }
+  };
+
+  const getTradingEconomicsUrl = (country: string) => {
+    const countrySlug = country.toLowerCase().replace(/\s+/g, '-');
+    return `https://tradingeconomics.com/${countrySlug}/inflation-cpi`;
+  };
+
+  const getExchangeRatesUrl = (currency: string, year: number) => {
+    return `https://www.exchangerates.org.uk/USD-${currency}-spot-exchange-rates-history-${year}.html`;
   };
 
   const handleEmployeeSelect = async (employeeId: string) => {
@@ -363,13 +373,38 @@ export const FCAAnalysisWorkflow = () => {
 
               <div className="p-4 bg-muted rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">Macroeconomic Analysis</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold">Macroeconomic Analysis</h4>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Data is auto-fetched from World Bank API and may be historical. Please verify current values using the links provided.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   {fetchingMacroData && <span className="text-sm text-muted-foreground">Fetching data...</span>}
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-xs">Inflation Rate (12 months)</Label>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className="text-xs">Inflation Rate (12 months)</Label>
+                      {selectedEmployee && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2"
+                          onClick={() => window.open(getTradingEconomicsUrl(selectedEmployee.country), '_blank')}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Verify
+                        </Button>
+                      )}
+                    </div>
                     <Input
                       type="number"
                       step="0.01"
@@ -382,7 +417,20 @@ export const FCAAnalysisWorkflow = () => {
                   {selectedEmployee?.currency !== "USD" && (
                     <>
                       <div>
-                        <Label className="text-xs">FX Rate {new Date().getFullYear()}</Label>
+                        <div className="flex items-center justify-between mb-1">
+                          <Label className="text-xs">FX Rate {new Date().getFullYear()}</Label>
+                          {selectedEmployee && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => window.open(getExchangeRatesUrl(selectedEmployee.currency, new Date().getFullYear()), '_blank')}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Verify
+                            </Button>
+                          )}
+                        </div>
                         <Input
                           type="number"
                           step="0.0001"
@@ -392,7 +440,20 @@ export const FCAAnalysisWorkflow = () => {
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">FX Rate {new Date().getFullYear() - 1}</Label>
+                        <div className="flex items-center justify-between mb-1">
+                          <Label className="text-xs">FX Rate {new Date().getFullYear() - 1}</Label>
+                          {selectedEmployee && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => window.open(getExchangeRatesUrl(selectedEmployee.currency, new Date().getFullYear() - 1), '_blank')}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Verify
+                            </Button>
+                          )}
+                        </div>
                         <Input
                           type="number"
                           step="0.0001"
