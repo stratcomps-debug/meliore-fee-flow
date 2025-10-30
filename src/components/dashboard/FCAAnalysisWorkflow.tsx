@@ -184,11 +184,16 @@ export const FCAAnalysisWorkflow = () => {
 
     const crPercent = compaRatio * 100;
     
+    // CR < 95%
     if (crPercent < 95) {
       return rating.below95;
-    } else if (crPercent >= 95 && crPercent <= 105) {
+    } 
+    // CR >= 95% and < 105%
+    else if (crPercent >= 95 && crPercent < 105) {
       return rating.between95and105;
-    } else {
+    } 
+    // CR >= 105%
+    else {
       return rating.above105;
     }
   };
