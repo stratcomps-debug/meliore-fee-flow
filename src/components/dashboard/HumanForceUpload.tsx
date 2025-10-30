@@ -30,23 +30,43 @@ export const HumanForceUpload = () => {
     try {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      
+      // Find the "FCA input sheet" or second sheet
+      let worksheet;
+      const fcaSheetName = workbook.SheetNames.find(name => name.toLowerCase().includes("fca"));
+      if (fcaSheetName) {
+        worksheet = workbook.Sheets[fcaSheetName];
+      } else if (workbook.SheetNames.length > 1) {
+        worksheet = workbook.Sheets[workbook.SheetNames[1]]; // Second sheet
+      } else {
+        throw new Error("FCA input sheet not found. Please upload the correct HumanForce file.");
+      }
+
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
       const batchId = uuidv4();
       const records = jsonData.map((row: any) => ({
         upload_batch_id: batchId,
-        employee_id: row.employee_id || row.EmployeeID,
-        employee_name: row.employee_name || row.Name,
-        country: row.country || row.Country,
-        level: row.level || row.Level,
-        job_title: row.job_title || row.JobTitle,
-        current_salary: parseFloat(row.current_salary || row.Salary || 0),
-        currency: row.currency || row.Currency || "USD",
-        hire_date: row.hire_date || row.HireDate,
-        performance_rating: row.performance_rating || row.Performance,
-        compa_ratio: parseFloat(row.compa_ratio || row.CompaRatio || 0),
-        raw_data: row,
+        employee_id: row["intelliHR ID"] || row.intelliHR_ID,
+        employee_name: row["Full Name"] || row.Full_Name,
+        country: row.Location || row.location,
+        level: String(row["Pay Grade"] || row.Pay_Grade || ""),
+        job_title: row["Job Position Title"] || row.Job_Position_Title,
+        current_salary: parseFloat(row["Base Annual Salary"] || row.Base_Annual_Salary || 0),
+        currency: extractCurrency(row["Base Annual Salary"]),
+        hire_date: row["Job Start Date"] || row.Job_Start_Date,
+        performance_rating: row["Performance Rating"] || null,
+        compa_ratio: parseFloat(row.CR || 0),
+        raw_data: {
+          ...row,
+          bottom_of_band: row["Bottom of band"],
+          midpoint_of_band: row["Midpoint of band"],
+          top_of_band: row["Top of band"],
+          business_unit: row["Business Unit"],
+          supervisor: row["Supervisor Name"],
+          employment_condition: row["Employment Condition"],
+          fte: row.FTE,
+        },
       }));
 
       const { error } = await supabase.from("humanforce_data").insert(records);
@@ -67,6 +87,16 @@ export const HumanForceUpload = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const extractCurrency = (salaryValue: any): string => {
+    if (!salaryValue) return "USD";
+    const str = String(salaryValue);
+    if (str.includes("€") || str.includes("EUR")) return "EUR";
+    if (str.includes("£") || str.includes("GBP")) return "GBP";
+    if (str.includes("kr") || str.includes("SEK")) return "SEK";
+    if (str.includes("zł") || str.includes("PLN")) return "PLN";
+    return "USD";
   };
 
   return (
