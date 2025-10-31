@@ -598,15 +598,17 @@ export const FCAAnalysisWorkflow = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"} {formData.analysis_type === 'external_candidate_initial' ? "(if known)" : ""}</Label>
-                  <Input 
-                    value={getCurrentEmployeeData()?.current_salary?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "N/A"} 
-                    disabled
-                    type="text"
-                  />
-                </div>
+              <div className={formData.analysis_type === 'external_candidate_initial' ? "grid grid-cols-2 gap-4" : "grid grid-cols-3 gap-4"}>
+                {formData.analysis_type !== 'external_candidate_initial' && (
+                  <div className="space-y-2">
+                    <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
+                    <Input 
+                      value={getCurrentEmployeeData()?.current_salary?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "N/A"} 
+                      disabled
+                      type="text"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Proposed {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
                   <Input
@@ -618,8 +620,9 @@ export const FCAAnalysisWorkflow = () => {
                         setFormData({ ...formData, proposed_salary: value });
                       }
                     }}
+                    disabled={formData.analysis_type === 'external_candidate_initial'}
                   />
-                  {getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
+                  {formData.analysis_type !== 'external_candidate_initial' && getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
                     <p className="text-xs text-muted-foreground">
                       Total % increase: {(
                         (parseFloat(formData.merit_increase?.toString() || "0")) + 
