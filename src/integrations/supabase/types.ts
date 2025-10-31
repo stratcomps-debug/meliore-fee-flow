@@ -39,6 +39,7 @@ export type Database = {
           proposed_salary: number | null
           rationale: string | null
           recommendation: string | null
+          supervisor_name: string | null
           updated_at: string
           wtw_midpoint: number | null
           years_experience: number | null
@@ -68,6 +69,7 @@ export type Database = {
           proposed_salary?: number | null
           rationale?: string | null
           recommendation?: string | null
+          supervisor_name?: string | null
           updated_at?: string
           wtw_midpoint?: number | null
           years_experience?: number | null
@@ -97,6 +99,7 @@ export type Database = {
           proposed_salary?: number | null
           rationale?: string | null
           recommendation?: string | null
+          supervisor_name?: string | null
           updated_at?: string
           wtw_midpoint?: number | null
           years_experience?: number | null

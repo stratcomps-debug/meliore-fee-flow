@@ -45,6 +45,7 @@ export const FCAAnalysisWorkflow = () => {
     rationale: "",
     recommendation: "",
     external_candidate_level: "", // For external candidates: entry, experienced, specialized
+    supervisor_name: "",
   });
   
   // For external candidates - manual entry
@@ -456,6 +457,15 @@ export const FCAAnalysisWorkflow = () => {
                       placeholder="Full name"
                       value={externalCandidateData.employee_name}
                       onChange={(e) => setExternalCandidateData({ ...externalCandidateData, employee_name: e.target.value })}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Supervisor Name</Label>
+                    <Input
+                      placeholder="Reports to"
+                      value={formData.supervisor_name}
+                      onChange={(e) => setFormData({ ...formData, supervisor_name: e.target.value })}
                     />
                   </div>
                   
