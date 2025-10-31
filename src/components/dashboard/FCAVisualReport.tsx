@@ -884,7 +884,7 @@ export const FCAVisualReport = () => {
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
-                <TableCell>
+                <TableCell className="whitespace-pre-line">
                   {getGenderGapAnalysis()}
                 </TableCell>
               </TableRow>
