@@ -464,9 +464,25 @@ export const FCAAnalysisWorkflow = () => {
                     <Select
                       value={externalCandidateData.country}
                       onValueChange={(value) => {
-                        setExternalCandidateData({ ...externalCandidateData, country: value });
-                        // Auto-determine currency based on country
-                        // We'll use the same logic as the database trigger
+                        // Determine currency based on contract type and country
+                        let currency = "USD";
+                        if (formData.contract_type === "employee") {
+                          // Map country to currency for employee contracts
+                          const currencyMap: Record<string, string> = {
+                            "Austria": "EUR", "Belgium": "EUR", "France": "EUR", "Germany": "EUR",
+                            "Ireland": "EUR", "Italy": "EUR", "Luxembourg": "EUR", "Netherlands": "EUR",
+                            "Portugal": "EUR", "Spain": "EUR",
+                            "UK": "GBP", "Denmark": "DKK", "Norway": "NOK", "Poland": "PLN",
+                            "Sweden": "SEK", "USA": "USD", "Canada": "CAD", "Mexico": "MXN",
+                            "Brazil": "BRL", "Argentina": "ARS", "Chile": "CLP", "Costa Rica": "CRC",
+                            "Australia": "AUD", "New Zealand": "NZD", "Japan": "JPY", "South Korea": "KRW",
+                            "Hong Kong": "HKD", "India": "INR", "Indonesia": "IDR", "Malaysia": "MYR",
+                            "Philippines": "PHP", "Thailand": "THB", "Bangladesh": "BDT", "South Africa": "ZAR",
+                            "Egypt": "EGP", "Kenya": "KES", "Nigeria": "NGN", "Ghana": "GHS", "Senegal": "XOF"
+                          };
+                          currency = currencyMap[value] || "USD";
+                        }
+                        setExternalCandidateData({ ...externalCandidateData, country: value, currency });
                       }}
                     >
                       <SelectTrigger>
@@ -589,13 +605,13 @@ export const FCAAnalysisWorkflow = () => {
                     <div>
                       <span className="text-muted-foreground">KF Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.kf_midpoint ? paybandInfo.kf_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {paybandInfo.currency || getCurrentEmployeeData()?.currency || ""}
+                        {paybandInfo.kf_midpoint ? paybandInfo.kf_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {formData.contract_type === "consultancy" ? "USD" : (externalCandidateData.currency || paybandInfo.currency || getCurrentEmployeeData()?.currency || "")}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">WTW Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.wtw_midpoint ? paybandInfo.wtw_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {paybandInfo.currency || getCurrentEmployeeData()?.currency || ""}
+                        {paybandInfo.wtw_midpoint ? paybandInfo.wtw_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {formData.contract_type === "consultancy" ? "USD" : (externalCandidateData.currency || paybandInfo.currency || getCurrentEmployeeData()?.currency || "")}
                       </span>
                     </div>
                     <div>
@@ -675,7 +691,29 @@ export const FCAAnalysisWorkflow = () => {
                   <Label>Contract Type</Label>
                   <Select
                     value={formData.contract_type}
-                    onValueChange={(value) => setFormData({ ...formData, contract_type: value })}
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, contract_type: value });
+                      // Update currency for external candidates when contract type changes
+                      if (formData.analysis_type === 'external_candidate_initial' && externalCandidateData.country) {
+                        let currency = "USD";
+                        if (value === "employee") {
+                          const currencyMap: Record<string, string> = {
+                            "Austria": "EUR", "Belgium": "EUR", "France": "EUR", "Germany": "EUR",
+                            "Ireland": "EUR", "Italy": "EUR", "Luxembourg": "EUR", "Netherlands": "EUR",
+                            "Portugal": "EUR", "Spain": "EUR",
+                            "UK": "GBP", "Denmark": "DKK", "Norway": "NOK", "Poland": "PLN",
+                            "Sweden": "SEK", "USA": "USD", "Canada": "CAD", "Mexico": "MXN",
+                            "Brazil": "BRL", "Argentina": "ARS", "Chile": "CLP", "Costa Rica": "CRC",
+                            "Australia": "AUD", "New Zealand": "NZD", "Japan": "JPY", "South Korea": "KRW",
+                            "Hong Kong": "HKD", "India": "INR", "Indonesia": "IDR", "Malaysia": "MYR",
+                            "Philippines": "PHP", "Thailand": "THB", "Bangladesh": "BDT", "South Africa": "ZAR",
+                            "Egypt": "EGP", "Kenya": "KES", "Nigeria": "NGN", "Ghana": "GHS", "Senegal": "XOF"
+                          };
+                          currency = currencyMap[externalCandidateData.country] || "USD";
+                        }
+                        setExternalCandidateData(prev => ({ ...prev, currency }));
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
