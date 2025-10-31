@@ -60,7 +60,7 @@ export const FCAVisualReport = () => {
           .select("*")
           .eq("country", analysis.country)
           .eq("level", analysis.level)
-          .or("employment_condition.is.null,employment_condition.neq.Contractor,employment_condition.neq.Consultancy");
+          .eq("employment_condition", "Employment Contract");
 
         setCohortData(cohortMembers || []);
       }
