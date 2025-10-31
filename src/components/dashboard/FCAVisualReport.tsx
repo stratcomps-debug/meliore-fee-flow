@@ -102,10 +102,30 @@ export const FCAVisualReport = () => {
     // Calculate proposed equity distance (Y) - replace current staff member's CR with proposed CR
     // Build the new set of compa-ratios: all other staff + the proposed CR for current staff
     const proposedCompaRatios = otherStaffMembers.map((m: any) => m.compa_ratio || 0);
-    proposedCompaRatios.push(selectedAnalysis?.compa_ratio_proposed || 0);
+    const proposedCR = selectedAnalysis?.compa_ratio_proposed || 0;
+    
+    console.log('Equity Distance Debug:', {
+      staffCount,
+      otherStaffMembers: otherStaffMembers.map(m => ({ name: m.employee_name, cr: m.compa_ratio })),
+      currentAnalysis: selectedAnalysis?.employee_name,
+      proposedCR,
+      compaRatios,
+      maxCompaRatio,
+      minCompaRatio,
+      currentDistance
+    });
+    
+    proposedCompaRatios.push(proposedCR);
     
     const maxProposedCompa = Math.max(...proposedCompaRatios);
     const minProposedCompa = Math.min(...proposedCompaRatios);
+    
+    console.log('Proposed calculation:', {
+      proposedCompaRatios,
+      maxProposedCompa,
+      minProposedCompa,
+      proposedDistance: (maxProposedCompa - minProposedCompa) * 100
+    });
     
     // Y = difference after updating the staff member's compa-ratio
     const proposedDistance = maxProposedCompa - minProposedCompa;
