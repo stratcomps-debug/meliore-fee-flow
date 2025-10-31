@@ -236,11 +236,11 @@ export const FCAVisualReport = () => {
             text: (() => {
               const cr = selectedAnalysis.compa_ratio_current;
               if (cr < 95) {
-                return `${firstName} is at Foundation Level - ${pronoun} comes into the role and will require handholding/guidance to start contributing. Meliore typically manages such skills around the 90%CR-95%CR and will as a rule start at the 90%CR with flexibility for adjustment depending on the quantum, breadth and depth of prior relevant experience of the holder.`;
+                return `${firstName} is at Foundation Level - ${pronoun} is in the role and requires handholding/guidance to contribute effectively. Meliore typically manages such skills around the 90%CR-95%CR and will as a rule start at the 90%CR with flexibility for adjustment depending on the quantum, breadth and depth of prior relevant experience of the holder.`;
               } else if (cr >= 95 && cr < 105) {
-                return `${firstName} is at Advanced Level - ${pronoun} comes into the role and will not require any handholding and needs minimum guidance to start contributing. Meliore typically manages such skills around the 95%CR-105%CR.`;
+                return `${firstName} is at Advanced Level - ${pronoun} is in the role and does not require any handholding and needs minimum guidance to contribute effectively. Meliore typically manages such skills around the 95%CR-105%CR.`;
               } else {
-                return `${firstName} is at Authority Level - ${pronoun} comes into the role as a subject matter referent recognized in their field internally and externally and in relevant communities of practice and thought leaders. Meliore typically manages such skills around the 105%CR-120%CR.`;
+                return `${firstName} is at Authority Level - ${pronoun} is in the role as a subject matter referent recognized in their field internally and externally and in relevant communities of practice and thought leaders. Meliore typically manages such skills around the 105%CR-120%CR.`;
               }
             })(),
             spacing: { after: 100 },
@@ -598,11 +598,11 @@ export const FCAVisualReport = () => {
                   {(() => {
                     const cr = selectedAnalysis.compa_ratio_current;
                     if (cr < 95) {
-                      return `${firstName} is at Foundation Level - ${pronoun} comes into the role and will require handholding/guidance to start contributing. Meliore typically manages such skills around the 90%CR-95%CR and will as a rule start at the 90%CR with flexibility for adjustment depending on the quantum, breadth and depth of prior relevant experience of the holder.`;
+                      return `${firstName} is at Foundation Level - ${pronoun} is in the role and requires handholding/guidance to contribute effectively. Meliore typically manages such skills around the 90%CR-95%CR and will as a rule start at the 90%CR with flexibility for adjustment depending on the quantum, breadth and depth of prior relevant experience of the holder.`;
                     } else if (cr >= 95 && cr < 105) {
-                      return `${firstName} is at Advanced Level - ${pronoun} comes into the role and will not require any handholding and needs minimum guidance to start contributing. Meliore typically manages such skills around the 95%CR-105%CR.`;
+                      return `${firstName} is at Advanced Level - ${pronoun} is in the role and does not require any handholding and needs minimum guidance to contribute effectively. Meliore typically manages such skills around the 95%CR-105%CR.`;
                     } else {
-                      return `${firstName} is at Authority Level - ${pronoun} comes into the role as a subject matter referent recognized in their field internally and externally and in relevant communities of practice and thought leaders. Meliore typically manages such skills around the 105%CR-120%CR.`;
+                      return `${firstName} is at Authority Level - ${pronoun} is in the role as a subject matter referent recognized in their field internally and externally and in relevant communities of practice and thought leaders. Meliore typically manages such skills around the 105%CR-120%CR.`;
                     }
                   })()}
                   {"\n\n"}
