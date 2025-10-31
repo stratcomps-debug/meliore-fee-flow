@@ -485,7 +485,11 @@ export const FCAAnalysisWorkflow = () => {
                     <Input
                       placeholder="e.g., L1, L2, L3"
                       value={externalCandidateData.level}
-                      onChange={(e) => setExternalCandidateData({ ...externalCandidateData, level: e.target.value })}
+                      onChange={(e) => {
+                        setExternalCandidateData({ ...externalCandidateData, level: e.target.value });
+                        // Reset candidate level selection when level changes
+                        setFormData(prev => ({ ...prev, external_candidate_level: "" }));
+                      }}
                     />
                   </div>
                   
@@ -671,9 +675,9 @@ export const FCAAnalysisWorkflow = () => {
                 </div>
               </div>
 
-              {formData.analysis_type === 'external_candidate_initial' && (
-                <div className="space-y-2">
-                  <Label>Candidate Level (Total Rewards Policy)</Label>
+              {formData.analysis_type === 'external_candidate_initial' && externalCandidateData.country && externalCandidateData.level && (
+                <div className="space-y-4">
+                  <Label>Candidate Level (based on Total Rewards Policy)</Label>
                   <Select
                     value={formData.external_candidate_level}
                     onValueChange={(value) => {
@@ -684,11 +688,12 @@ export const FCAAnalysisWorkflow = () => {
                       else if (value === 'experienced') targetCompaRatio = 95;
                       else if (value === 'specialized') targetCompaRatio = 105;
                       
-                      // Calculate what percentage increase is needed to reach target CR
-                      const currentData = getCurrentEmployeeData();
-                      if (paybandInfo && currentData && targetCompaRatio > 0) {
+                      // Calculate proposed salary based on target CR
+                      if (paybandInfo && targetCompaRatio > 0) {
                         const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
                         const targetSalary = midpoint * (targetCompaRatio / 100);
+                        
+                        console.log("Setting proposed salary:", { midpoint, targetCompaRatio, targetSalary });
                         
                         // Set proposed salary directly to target salary for external candidates
                         setFormData(prev => ({ 
@@ -696,6 +701,8 @@ export const FCAAnalysisWorkflow = () => {
                           proposed_salary: targetSalary.toString(),
                           merit_increase: 0 // No merit increase for external candidates, just positioning
                         }));
+                      } else {
+                        console.log("Cannot calculate proposed salary:", { paybandInfo, targetCompaRatio });
                       }
                     }}
                   >
