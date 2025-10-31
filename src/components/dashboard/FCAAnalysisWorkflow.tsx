@@ -624,7 +624,7 @@ export const FCAAnalysisWorkflow = () => {
                 </div>
               )}
 
-              <div className={formData.analysis_type === 'external_candidate_initial' ? "grid grid-cols-2 gap-4" : "grid grid-cols-3 gap-4"}>
+              <div className={formData.analysis_type === 'external_candidate_initial' ? "grid grid-cols-1 gap-4" : "grid grid-cols-2 gap-4"}>
                 {formData.analysis_type !== 'external_candidate_initial' && (
                   <div className="space-y-2">
                     <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
@@ -635,34 +635,6 @@ export const FCAAnalysisWorkflow = () => {
                     />
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label>Proposed {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
-                  <Input
-                    type="text"
-                    value={formData.proposed_salary ? parseFloat(formData.proposed_salary).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/,/g, '');
-                      if (!isNaN(parseFloat(value)) || value === '') {
-                        setFormData({ ...formData, proposed_salary: value });
-                      }
-                    }}
-                    disabled={formData.analysis_type === 'external_candidate_initial'}
-                  />
-                  {formData.analysis_type !== 'external_candidate_initial' && getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Total % increase: {(
-                        (parseFloat(formData.merit_increase?.toString() || "0")) + 
-                        (parseFloat(formData.proposed_adjustment || "0"))
-                      ).toFixed(2)}%
-                      {" = "}
-                      {Math.ceil(
-                        getCurrentEmployeeData().current_salary * 
-                        (1 + ((parseFloat(formData.merit_increase?.toString() || "0")) + 
-                        (parseFloat(formData.proposed_adjustment || "0"))) / 100)
-                      ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {getCurrentEmployeeData().currency || paybandInfo?.currency}
-                    </p>
-                  )}
-                </div>
                 <div className="space-y-2">
                   <Label>
                     Budget Amount
@@ -999,6 +971,36 @@ export const FCAAnalysisWorkflow = () => {
                 </div>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label>Proposed {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
+                <Input
+                  type="text"
+                  value={formData.proposed_salary ? parseFloat(formData.proposed_salary).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/,/g, '');
+                    if (!isNaN(parseFloat(value)) || value === '') {
+                      setFormData({ ...formData, proposed_salary: value });
+                    }
+                  }}
+                  disabled={formData.analysis_type === 'external_candidate_initial'}
+                />
+                {formData.analysis_type !== 'external_candidate_initial' && getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Total % increase: {(
+                      (parseFloat(formData.merit_increase?.toString() || "0")) + 
+                      (parseFloat(formData.proposed_adjustment || "0"))
+                    ).toFixed(2)}%
+                    {" = "}
+                    {Math.ceil(
+                      getCurrentEmployeeData().current_salary * 
+                      (1 + ((parseFloat(formData.merit_increase?.toString() || "0")) + 
+                      (parseFloat(formData.proposed_adjustment || "0"))) / 100)
+                    ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {getCurrentEmployeeData().currency || paybandInfo?.currency}
+                  </p>
+                )}
+              </div>
+
 
               <div className="space-y-2">
                 <Label>Additional Comment</Label>
