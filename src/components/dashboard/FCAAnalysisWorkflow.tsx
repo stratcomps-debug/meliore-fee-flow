@@ -669,7 +669,7 @@ export const FCAAnalysisWorkflow = () => {
                   </div>
                   
                   <div>
-                    <Label className="text-xs">FX Change (%)</Label>
+                    <Label className="text-xs">Currency Change (%)</Label>
                     <Input
                       type="text"
                       step="0.01"
@@ -680,7 +680,7 @@ export const FCAAnalysisWorkflow = () => {
                   </div>
                   
                   <div>
-                    <Label className="text-xs">Total Macro Effect (%) = FX Change + Inflation</Label>
+                    <Label className="text-xs">Total Macro Effect (%) = Currency Change + Inflation</Label>
                     <Input
                       type="text"
                       step="0.01"
