@@ -76,37 +76,34 @@ export const FCAVisualReport = () => {
   const calculateEquityDistance = () => {
     if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0, count: 0, contractType: '' };
     
-    // Get all staff members excluding the current analysis subject for calculation
+    // X = total cohort count including the current staff member
+    const staffCount = cohortData.length;
+    
+    // Calculate current equity distance (A) - based on ALL staff including current member with their CURRENT CR
+    const allCompaRatios = cohortData.map((m: any) => m.compa_ratio || 0);
+    
+    const maxCompaRatio = Math.max(...allCompaRatios);
+    const minCompaRatio = Math.min(...allCompaRatios);
+    
+    // A = difference between highest and lowest compa-ratio (including current staff's current CR)
+    const currentDistance = maxCompaRatio - minCompaRatio;
+    
+    // Calculate proposed equity distance (Y) - replace current staff member's CR with proposed CR
+    // Build the new set of compa-ratios: all staff except current, then add the proposed CR
     const otherStaffMembers = cohortData.filter((m: any) => 
       m.employee_name !== selectedAnalysis?.employee_name
     );
     
-    // X = total cohort count including the current staff member
-    const staffCount = cohortData.length;
-    
-    // Calculate current equity distance (A) - based on compa-ratios of other staff
-    const compaRatios = otherStaffMembers.length > 0 
-      ? otherStaffMembers.map((m: any) => m.compa_ratio || 0)
-      : cohortData.map((m: any) => m.compa_ratio || 0);
-    
-    const maxCompaRatio = Math.max(...compaRatios);
-    const minCompaRatio = Math.min(...compaRatios);
-    
-    // A = difference between highest and lowest compa-ratio
-    const currentDistance = maxCompaRatio - minCompaRatio;
-    
-    // Calculate proposed equity distance (Y) - replace current staff member's CR with proposed CR
-    // Build the new set of compa-ratios: all other staff + the proposed CR for current staff
     const proposedCompaRatios = otherStaffMembers.map((m: any) => m.compa_ratio || 0);
     // Convert proposed CR from percentage to decimal (stored as 100.65 instead of 1.0065)
     const proposedCR = (selectedAnalysis?.compa_ratio_proposed || 0) / 100;
     
     console.log('Equity Distance Debug:', {
       staffCount,
-      otherStaffMembers: otherStaffMembers.map(m => ({ name: m.employee_name, cr: m.compa_ratio })),
+      allStaff: cohortData.map(m => ({ name: m.employee_name, cr: m.compa_ratio })),
       currentAnalysis: selectedAnalysis?.employee_name,
       proposedCR,
-      compaRatios,
+      allCompaRatios,
       maxCompaRatio,
       minCompaRatio,
       currentDistance
