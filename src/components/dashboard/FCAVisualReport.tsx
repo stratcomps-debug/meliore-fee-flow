@@ -409,14 +409,23 @@ export const FCAVisualReport = () => {
             text: `Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency} (which is also 100% Compa-ratio).`,
             spacing: { after: 100 },
           }),
-          new Paragraph({
-            text: `${selectedAnalysis.employee_name} has been with the organisation for ${yearsWithOrg}, ${pronoun} joined in ${hireDateFormatted}.`,
-            spacing: { after: 100 },
-          }),
-          new Paragraph({
-            text: `${pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency}. ${pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is ${selectedAnalysis.compa_ratio_current.toFixed(2)}% to the Level ${selectedAnalysis.level} in ${selectedAnalysis.country}.`,
-            spacing: { after: 100 },
-          }),
+          // For external candidates, show different text
+          ...(selectedAnalysis.analysis_type === "external_candidate" 
+            ? [new Paragraph({
+                text: `${selectedAnalysis.employee_name} is a candidate for the "${humanforceData?.job_title || 'N/A'}" role.`,
+                spacing: { after: 100 },
+              })]
+            : [
+              new Paragraph({
+                text: `${selectedAnalysis.employee_name} has been with the organisation for ${yearsWithOrg}, ${pronoun} joined in ${hireDateFormatted}.`,
+                spacing: { after: 100 },
+              }),
+              new Paragraph({
+                text: `${pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency}. ${pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is ${selectedAnalysis.compa_ratio_current.toFixed(2)}% to the Level ${selectedAnalysis.level} in ${selectedAnalysis.country}.`,
+                spacing: { after: 100 },
+              }),
+            ]
+          ),
           new Paragraph({
             text: (() => {
               const cr = selectedAnalysis.compa_ratio_current;
@@ -820,6 +829,7 @@ export const FCAVisualReport = () => {
   const hireDateFormatted = hireDate ? hireDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "N/A";
   const yearsWithOrg = hireDate ? calculateYearsWithOrganisation(employeeData.hire_date) : "N/A";
   const firstName = selectedAnalysis.employee_name.split(' ')[0];
+  const jobTitle = employeeData?.job_title || feeApprovalData?.document_content?.formData?.job_title || 'N/A';
 
   return (
     <div className="space-y-6">
@@ -915,9 +925,16 @@ export const FCAVisualReport = () => {
                 <TableCell className="whitespace-pre-line">
                   Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(midpoint).toLocaleString()} {selectedAnalysis.currency} (which is also 100% Compa-ratio).
                   {"\n\n"}
-                  {selectedAnalysis.employee_name} has been with the organisation for {yearsWithOrg}, {pronoun} joined in {hireDateFormatted}.
-                  {"\n\n"}
-                  {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is {Math.ceil(selectedAnalysis.current_salary).toLocaleString()} {selectedAnalysis.currency}. {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is {selectedAnalysis.compa_ratio_current.toFixed(2)}% to the Level {selectedAnalysis.level} in {selectedAnalysis.country}.
+                  {selectedAnalysis.analysis_type === "external_candidate" 
+                    ? `${selectedAnalysis.employee_name} is a candidate for the "${jobTitle}" role.`
+                    : (
+                      <>
+                        {selectedAnalysis.employee_name} has been with the organisation for {yearsWithOrg}, {pronoun} joined in {hireDateFormatted}.
+                        {"\n\n"}
+                        {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is {Math.ceil(selectedAnalysis.current_salary).toLocaleString()} {selectedAnalysis.currency}. {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is {selectedAnalysis.compa_ratio_current.toFixed(2)}% to the Level {selectedAnalysis.level} in {selectedAnalysis.country}.
+                      </>
+                    )
+                  }
                   {"\n\n"}
                   {(() => {
                     const cr = selectedAnalysis.compa_ratio_current;
