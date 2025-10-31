@@ -410,7 +410,7 @@ export const FCAVisualReport = () => {
             spacing: { after: 100 },
           }),
           // For external candidates, show different text
-          ...(selectedAnalysis.analysis_type === "external_candidate" 
+          ...(selectedAnalysis.analysis_type === "external_candidate_initial" 
             ? [new Paragraph({
                 text: `${selectedAnalysis.employee_name} is a candidate for the "${humanforceData?.job_title || 'N/A'}" role.`,
                 spacing: { after: 100 },
@@ -925,7 +925,7 @@ export const FCAVisualReport = () => {
                 <TableCell className="whitespace-pre-line">
                   Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(midpoint).toLocaleString()} {selectedAnalysis.currency} (which is also 100% Compa-ratio).
                   {"\n\n"}
-                  {selectedAnalysis.analysis_type === "external_candidate" 
+                  {selectedAnalysis.analysis_type === "external_candidate_initial" 
                     ? `${selectedAnalysis.employee_name} is a candidate for the "${jobTitle}" role.`
                     : (
                       <>
