@@ -679,7 +679,7 @@ export const FCAVisualReport = () => {
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  We currently have {cohortData?.length || 0} staff members on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country}. The equity distance for the {cohortData?.length || 0} staff members is {Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance is {Math.ceil(equityDistance.proposed)}%.
+                  We currently have {equityDistance.count} {equityDistance.contractType} on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country}. The equity distance for the {equityDistance.count} staff {equityDistance.count === 1 ? 'member' : 'members'} is {Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance {Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `is ${Math.ceil(equityDistance.proposed)}%`}.
                 </TableCell>
               </TableRow>
 
