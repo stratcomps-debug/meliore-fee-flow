@@ -149,6 +149,13 @@ export const FCAVisualReport = () => {
   const handleExportToWord = async () => {
     if (!selectedAnalysis) return;
 
+    // Fetch humanforce data for hire_date and gender
+    const { data: humanforceData } = await supabase
+      .from("humanforce_data")
+      .select("*")
+      .eq("id", selectedAnalysis.humanforce_record_id)
+      .maybeSingle();
+
     const midpoint = selectedAnalysis.kf_midpoint || selectedAnalysis.wtw_midpoint || 0;
     const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
     const dataYear = selectedAnalysis.kf_midpoint ? 2024 : 2025;
@@ -156,6 +163,16 @@ export const FCAVisualReport = () => {
     const avgCompaRatio = calculateAverageCompaRatio();
     const currentYear = new Date().getFullYear();
     const previousYear = currentYear - 1;
+    
+    // Get gender pronoun
+    const rawData = humanforceData?.raw_data as any;
+    const gender = rawData?.Gender || rawData?.gender;
+    const pronoun = gender?.toLowerCase() === "male" ? "he" : gender?.toLowerCase() === "female" ? "she" : "they";
+    
+    // Format hire date
+    const hireDate = humanforceData?.hire_date ? new Date(humanforceData.hire_date) : null;
+    const hireDateFormatted = hireDate ? hireDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "N/A";
+    const yearsWithOrg = hireDate ? calculateYearsWithOrganisation(humanforceData.hire_date) : "N/A";
 
     const docContent = feeApprovalData?.document_content;
     const fxCurrent = docContent?.formData?.fx_rate_current;
@@ -197,7 +214,11 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency} (which is also 100% Compa-ratio). The source of the data is ${dataSource} and values date from ${dataYear}.`,
+            text: `Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency} (which is also 100% Compa-ratio).`,
+            spacing: { after: 100 },
+          }),
+          new Paragraph({
+            text: `${selectedAnalysis.employee_name} has been with the organisation for ${yearsWithOrg}, ${pronoun} joined in ${hireDateFormatted}.`,
             spacing: { after: 100 },
           }),
           new Paragraph({
