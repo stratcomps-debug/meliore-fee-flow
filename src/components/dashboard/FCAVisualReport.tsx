@@ -41,29 +41,26 @@ export const FCAVisualReport = () => {
     setSelectedAnalysis(analysis);
 
     if (analysis) {
-      // If analyzing an employee, compare to humanforce_data
-      // If analyzing a consultant, compare to other consultant FCA analyses
+      // Fetch cohort data based on contract type
+      // Both employees and consultants come from humanforce_data
+      let employmentConditionFilter;
+      
       if (analysis.contract_type === 'consultancy') {
-        const { data: consultantCohort } = await supabase
-          .from("fca_analyses")
-          .select("*")
-          .eq("country", analysis.country)
-          .eq("level", analysis.level)
-          .eq("contract_type", "consultancy");
-
-        setCohortData(consultantCohort || []);
+        // For consultants, filter by Consultancy Contract
+        employmentConditionFilter = 'Consultancy Contract';
       } else {
-        // For employees, fetch from humanforce_data
-        // Filter to only employees (exclude contractors/consultants)
-        const { data: cohortMembers } = await supabase
-          .from("humanforce_data")
-          .select("*")
-          .eq("country", analysis.country)
-          .eq("level", analysis.level)
-          .eq("employment_condition", "Employment Contract");
-
-        setCohortData(cohortMembers || []);
+        // For employees, filter by Employment Contract
+        employmentConditionFilter = 'Employment Contract';
       }
+
+      const { data: cohortMembers } = await supabase
+        .from("humanforce_data")
+        .select("*")
+        .eq("country", analysis.country)
+        .eq("level", analysis.level)
+        .eq("employment_condition", employmentConditionFilter);
+
+      setCohortData(cohortMembers || []);
 
       // Fetch fee approval data
       const { data: feeApproval } = await supabase
