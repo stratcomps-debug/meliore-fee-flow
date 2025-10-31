@@ -717,7 +717,7 @@ export const FCAVisualReport = () => {
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
-                <TableCell>
+                <TableCell className="whitespace-pre-line">
                   We currently have {equityDistance.count} {equityDistance.contractType} on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} including {selectedAnalysis.employee_name}. The equity distance for the {equityDistance.count} staff {equityDistance.count === 1 ? 'member' : 'members'} is {Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance {Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `is ${Math.ceil(equityDistance.proposed)}%`}.
                   {"\n\n"}
                   From these {equityDistance.count} {equityDistance.contractType} on the level {selectedAnalysis.level} in {selectedAnalysis.country}, {peerGroup.peerCount} have been identified as peers because of the Seniority/CR level. These {peerGroup.peerCount} peers have an average CR of {Math.ceil(peerGroup.averageCR)}%.
