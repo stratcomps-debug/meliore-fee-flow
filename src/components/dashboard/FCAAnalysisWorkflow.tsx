@@ -361,12 +361,12 @@ export const FCAAnalysisWorkflow = () => {
                     <span className="text-muted-foreground">Current Compa-Ratio:</span>{" "}
                     <span className="font-medium">
                       {selectedEmployee.compa_ratio 
-                        ? `${(selectedEmployee.compa_ratio * 100).toFixed(2)}%`
+                        ? `${(selectedEmployee.compa_ratio * 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
                         : paybandInfo 
                           ? (() => {
                               const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
                               const cr = midpoint > 0 ? (selectedEmployee.current_salary / midpoint) * 100 : 0;
-                              return `${cr.toFixed(2)}%`;
+                              return `${cr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
                             })()
                           : "N/A"}
                     </span>
@@ -492,9 +492,9 @@ export const FCAAnalysisWorkflow = () => {
                         : "Performance Related Increase (%)"}
                     </Label>
                     <Input
-                      type="number"
+                      type="text"
                       step="0.01"
-                      value={formData.merit_increase || "0"}
+                      value={formData.merit_increase ? parseFloat(formData.merit_increase.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                       disabled
                       className="bg-muted font-semibold w-24"
                     />
@@ -559,9 +559,9 @@ export const FCAAnalysisWorkflow = () => {
                   <div className="flex items-center gap-2">
                     <Label className="text-xs whitespace-nowrap">Proposed Adjustment (50% of Total)</Label>
                     <Input
-                      type="number"
+                      type="text"
                       step="0.01"
-                      value={formData.proposed_adjustment}
+                      value={formData.proposed_adjustment ? parseFloat(formData.proposed_adjustment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                       disabled
                       className="bg-muted font-semibold w-24"
                     />
@@ -583,11 +583,16 @@ export const FCAAnalysisWorkflow = () => {
                       </Button>
                     </div>
                     <Input
-                      type="number"
+                      type="text"
                       step="0.01"
-                      placeholder="e.g., 3.8"
-                      value={formData.inflation_rate}
-                      onChange={(e) => setFormData({ ...formData, inflation_rate: e.target.value })}
+                      placeholder="e.g., 3.80"
+                      value={formData.inflation_rate ? parseFloat(formData.inflation_rate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/,/g, '');
+                        if (!isNaN(parseFloat(value)) || value === '') {
+                          setFormData({ ...formData, inflation_rate: value });
+                        }
+                      }}
                       disabled={fetchingMacroData}
                     />
                   </div>
@@ -606,26 +611,28 @@ export const FCAAnalysisWorkflow = () => {
                       </Button>
                     </div>
                     <Input
-                      type="number"
+                      type="text"
                       step="0.0001"
-                      placeholder="e.g., 0.95"
-                      value={formData.fx_rate_current}
+                      placeholder="e.g., 0.9500"
+                      value={formData.fx_rate_current ? parseFloat(formData.fx_rate_current).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : ""}
                       onChange={(e) => {
-                        const newCurrent = e.target.value;
-                        const previous = parseFloat(formData.fx_rate_previous) || 0;
-                        const current = parseFloat(newCurrent) || 0;
-                        const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
-                        const inflation = parseFloat(formData.inflation_rate) || 0;
-                        const macroEffect = Math.abs(fxChange) + inflation;
-                        const adjustment = macroEffect * 0.5;
-                        
-                        setFormData({ 
-                          ...formData, 
-                          fx_rate_current: newCurrent,
-                          fx_change_percent: fxChange.toFixed(2),
-                          macroeconomic_effect: macroEffect.toFixed(2),
-                          proposed_adjustment: adjustment.toFixed(2),
-                        });
+                        const newCurrent = e.target.value.replace(/,/g, '');
+                        if (!isNaN(parseFloat(newCurrent)) || newCurrent === '') {
+                          const previous = parseFloat(formData.fx_rate_previous) || 0;
+                          const current = parseFloat(newCurrent) || 0;
+                          const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
+                          const inflation = parseFloat(formData.inflation_rate) || 0;
+                          const macroEffect = Math.abs(fxChange) + inflation;
+                          const adjustment = macroEffect * 0.5;
+                          
+                          setFormData({ 
+                            ...formData, 
+                            fx_rate_current: newCurrent,
+                            fx_change_percent: fxChange.toFixed(2),
+                            macroeconomic_effect: macroEffect.toFixed(2),
+                            proposed_adjustment: adjustment.toFixed(2),
+                          });
+                        }
                       }}
                       disabled={fetchingMacroData}
                     />
@@ -634,26 +641,28 @@ export const FCAAnalysisWorkflow = () => {
                   <div>
                     <Label className="text-xs">USD - Local Currency Rate (Last Year)</Label>
                     <Input
-                      type="number"
+                      type="text"
                       step="0.0001"
-                      placeholder="e.g., 0.92"
-                      value={formData.fx_rate_previous}
+                      placeholder="e.g., 0.9200"
+                      value={formData.fx_rate_previous ? parseFloat(formData.fx_rate_previous).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : ""}
                       onChange={(e) => {
-                        const newPrevious = e.target.value;
-                        const previous = parseFloat(newPrevious) || 0;
-                        const current = parseFloat(formData.fx_rate_current) || 0;
-                        const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
-                        const inflation = parseFloat(formData.inflation_rate) || 0;
-                        const macroEffect = Math.abs(fxChange) + inflation;
-                        const adjustment = macroEffect * 0.5;
-                        
-                        setFormData({ 
-                          ...formData, 
-                          fx_rate_previous: newPrevious,
-                          fx_change_percent: fxChange.toFixed(2),
-                          macroeconomic_effect: macroEffect.toFixed(2),
-                          proposed_adjustment: adjustment.toFixed(2),
-                        });
+                        const newPrevious = e.target.value.replace(/,/g, '');
+                        if (!isNaN(parseFloat(newPrevious)) || newPrevious === '') {
+                          const previous = parseFloat(newPrevious) || 0;
+                          const current = parseFloat(formData.fx_rate_current) || 0;
+                          const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
+                          const inflation = parseFloat(formData.inflation_rate) || 0;
+                          const macroEffect = Math.abs(fxChange) + inflation;
+                          const adjustment = macroEffect * 0.5;
+                          
+                          setFormData({ 
+                            ...formData, 
+                            fx_rate_previous: newPrevious,
+                            fx_change_percent: fxChange.toFixed(2),
+                            macroeconomic_effect: macroEffect.toFixed(2),
+                            proposed_adjustment: adjustment.toFixed(2),
+                          });
+                        }
                       }}
                       disabled={fetchingMacroData}
                     />
@@ -662,9 +671,9 @@ export const FCAAnalysisWorkflow = () => {
                   <div>
                     <Label className="text-xs">FX Change (%)</Label>
                     <Input
-                      type="number"
+                      type="text"
                       step="0.01"
-                      value={formData.fx_change_percent}
+                      value={formData.fx_change_percent ? parseFloat(formData.fx_change_percent).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                       disabled
                       className="bg-muted"
                     />
@@ -673,9 +682,9 @@ export const FCAAnalysisWorkflow = () => {
                   <div>
                     <Label className="text-xs">Total Macro Effect (%) = FX Change + Inflation</Label>
                     <Input
-                      type="number"
+                      type="text"
                       step="0.01"
-                      value={formData.macroeconomic_effect}
+                      value={formData.macroeconomic_effect ? parseFloat(formData.macroeconomic_effect).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                       disabled
                       className="bg-muted font-semibold"
                     />
