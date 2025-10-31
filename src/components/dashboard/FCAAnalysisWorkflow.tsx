@@ -385,13 +385,13 @@ export const FCAAnalysisWorkflow = () => {
                     <div>
                       <span className="text-muted-foreground">KF Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.kf_midpoint ? Math.ceil(paybandInfo.kf_midpoint).toLocaleString() : "N/A"} {selectedEmployee.currency}
+                        {paybandInfo.kf_midpoint ? paybandInfo.kf_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {selectedEmployee.currency}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">WTW Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.wtw_midpoint ? Math.ceil(paybandInfo.wtw_midpoint).toLocaleString() : "N/A"} {selectedEmployee.currency}
+                        {paybandInfo.wtw_midpoint ? paybandInfo.wtw_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {selectedEmployee.currency}
                       </span>
                     </div>
                     <div>
@@ -407,14 +407,22 @@ export const FCAAnalysisWorkflow = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
-                  <Input value={selectedEmployee.current_salary} disabled />
+                  <Input 
+                    value={selectedEmployee.current_salary?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
+                    disabled 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Proposed {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
                   <Input
-                    type="number"
-                    value={formData.proposed_salary}
-                    onChange={(e) => setFormData({ ...formData, proposed_salary: e.target.value })}
+                    type="text"
+                    value={formData.proposed_salary ? parseFloat(formData.proposed_salary).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/,/g, '');
+                      if (!isNaN(parseFloat(value)) || value === '') {
+                        setFormData({ ...formData, proposed_salary: value });
+                      }
+                    }}
                   />
                   {selectedEmployee && (
                     <p className="text-xs text-muted-foreground">
@@ -427,7 +435,7 @@ export const FCAAnalysisWorkflow = () => {
                         selectedEmployee.current_salary * 
                         (1 + ((parseFloat(formData.merit_increase?.toString() || "0")) + 
                         (parseFloat(formData.proposed_adjustment || "0"))) / 100)
-                      ).toLocaleString()} {selectedEmployee.currency}
+                      ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {selectedEmployee.currency}
                     </p>
                   )}
                 </div>
@@ -436,14 +444,19 @@ export const FCAAnalysisWorkflow = () => {
                     Budget Amount
                   </Label>
                   <Input
-                    type="number"
+                    type="text"
                     placeholder="Approved budget"
-                    value={formData.budget_amount}
-                    onChange={(e) => setFormData({ ...formData, budget_amount: e.target.value })}
+                    value={formData.budget_amount ? parseFloat(formData.budget_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/,/g, '');
+                      if (!isNaN(parseFloat(value)) || value === '') {
+                        setFormData({ ...formData, budget_amount: value });
+                      }
+                    }}
                   />
                   {formData.contract_type === "consultancy" && selectedEmployee && (
                     <p className="text-xs text-muted-foreground">
-                      FYI 6% = {Math.ceil(selectedEmployee.current_salary * 1.06).toLocaleString()} {selectedEmployee.currency}
+                      FYI 6% = {Math.ceil(selectedEmployee.current_salary * 1.06).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {selectedEmployee.currency}
                     </p>
                   )}
                 </div>
