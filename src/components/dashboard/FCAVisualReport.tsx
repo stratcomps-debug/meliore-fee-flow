@@ -62,20 +62,25 @@ export const FCAVisualReport = () => {
   };
 
   const calculateEquityDistance = () => {
-    if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0, count: 0 };
+    if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0, count: 0, contractType: '' };
     
-    // Get all staff members in the cohort excluding the current analysis subject
-    const otherStaffMembers = cohortData.filter((m: any) => 
+    // Filter cohort by contract type - only compare employees to employees, consultants to consultants
+    const sameContractTypeCohort = cohortData.filter((m: any) => 
+      m.contract_type === selectedAnalysis?.contract_type
+    );
+    
+    // Get all staff members excluding the current analysis subject
+    const otherStaffMembers = sameContractTypeCohort.filter((m: any) => 
       m.employee_name !== selectedAnalysis?.employee_name
     );
     
-    // X = number of other staff members (or total if it's a candidate/new hire)
-    const staffCount = otherStaffMembers.length > 0 ? otherStaffMembers.length : cohortData.length;
+    // X = number of other staff members (or total cohort if it's a candidate/new hire)
+    const staffCount = otherStaffMembers.length > 0 ? otherStaffMembers.length : sameContractTypeCohort.length;
     
-    // Calculate current equity distance (A) - based on compa-ratios
+    // Calculate current equity distance (A) - based on compa-ratios of other staff
     const compaRatios = otherStaffMembers.length > 0 
       ? otherStaffMembers.map((m: any) => m.compa_ratio || 0)
-      : cohortData.map((m: any) => m.compa_ratio || 0);
+      : sameContractTypeCohort.map((m: any) => m.compa_ratio || 0);
     
     const maxCompaRatio = Math.max(...compaRatios);
     const minCompaRatio = Math.min(...compaRatios);
@@ -83,18 +88,22 @@ export const FCAVisualReport = () => {
     // A = difference between highest and lowest compa-ratio
     const currentDistance = maxCompaRatio - minCompaRatio;
     
-    // Calculate proposed equity distance (Y) - including the proposed compa-ratio
-    const proposedCompaRatios = [...compaRatios, selectedAnalysis?.compa_ratio_proposed || 0];
+    // Calculate proposed equity distance (Y) - replace current staff member's CR with proposed CR
+    // Build the new set of compa-ratios: all other staff + the proposed CR for current staff
+    const proposedCompaRatios = otherStaffMembers.map((m: any) => m.compa_ratio || 0);
+    proposedCompaRatios.push(selectedAnalysis?.compa_ratio_proposed || 0);
+    
     const maxProposedCompa = Math.max(...proposedCompaRatios);
     const minProposedCompa = Math.min(...proposedCompaRatios);
     
-    // Y = difference taking into account the proposed compa-ratio
+    // Y = difference after updating the staff member's compa-ratio
     const proposedDistance = maxProposedCompa - minProposedCompa;
     
     return { 
       current: currentDistance * 100, // Convert to percentage
       proposed: proposedDistance * 100, // Convert to percentage
-      count: staffCount 
+      count: staffCount,
+      contractType: selectedAnalysis?.contract_type === 'consultancy' ? 'consultants' : 'employees'
     };
   };
 
@@ -281,7 +290,7 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `We currently have ${equityDistance.count} ${equityDistance.count === 1 ? 'other staff member' : 'other staff members'} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance will be ${Math.ceil(equityDistance.proposed)}%.`,
+            text: `We currently have ${equityDistance.count} ${equityDistance.contractType} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance will be ${Math.ceil(equityDistance.proposed)}%.`,
             spacing: { after: 200 },
           }),
 
