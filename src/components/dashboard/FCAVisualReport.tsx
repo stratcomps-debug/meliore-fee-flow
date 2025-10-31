@@ -259,7 +259,7 @@ export const FCAVisualReport = () => {
         const peerPayGap = Math.abs(peerAvgFemaleCR - peerAvgMaleCR);
         const peerGapFavour = peerAvgFemaleCR > peerAvgMaleCR ? "female" : "male";
         
-        genderText += ` The ${peerGroup.peerCount} peers who have an average CR of ${Math.ceil(peerGroup.averageCR)}% have a gender pay gap of ${Math.ceil(peerPayGap)}% in favour of ${peerGapFavour} staff.`;
+        genderText += `\n\nThe ${peerGroup.peerCount} peers who have an average CR of ${Math.ceil(peerGroup.averageCR)}% have a gender pay gap of ${Math.ceil(peerPayGap)}% in favour of ${peerGapFavour} staff.`;
         
         // Calculate proposed gap with the new person
         const proposedPeerMales = [...peerMales];
