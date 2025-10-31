@@ -513,29 +513,26 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `According to the latest Trading Economics data, the 12 months Inflation rate in ${selectedAnalysis.country} is ${selectedAnalysis.inflation_rate || "N/A"}% in ${currentYear}.`,
+            text: `According to Trading Economics, The annual inflation rate in ${selectedAnalysis.country} is ${selectedAnalysis.inflation_rate || "N/A"}% in September ${currentYear}.`,
             spacing: { after: 100 },
           }),
           ...(selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious ? [
             new Paragraph({
-              text: `On average in ${currentYear}, 1 USD allowed our staff members to obtain ${fxCurrent} ${selectedAnalysis.currency}.`,
+              text: `On average during ${currentYear}, 1 USD allowed our staff members to obtain ${fxCurrent} ${selectedAnalysis.currency}.`,
               spacing: { after: 100 },
             }),
             new Paragraph({
-              text: `On average in ${previousYear}, 1 USD allowed our staff members to obtain ${fxPrevious} ${selectedAnalysis.currency}.`,
+              text: `On average during ${previousYear}, 1 USD allowed our staff members to obtain ${fxPrevious} ${selectedAnalysis.currency}.`,
               spacing: { after: 100 },
             }),
             new Paragraph({
-              text: `In conclusion: on average in ${currentYear}, 1 USD allowed our staff members to obtain ${parseFloat(fxChange || "0") > 0 ? "more" : "less"} ${selectedAnalysis.currency} than in ${previousYear} (${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).`,
+              text: `In conclusion: on average, 1 USD allowed our staff members to obtain ${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "more" : "less"} than the previous year.`,
               spacing: { after: 100 },
             })
           ] : []),
           ...(macroEffect && proposedAdj ? [
             new Paragraph({
-              children: [new TextRun({ 
-                text: `The total macroeconomic effect (Inflation + FX fluctuation) is ${Math.ceil(parseFloat(macroEffect))}%. Meliore proposes to cover 50% of this effect, resulting in a ${Math.ceil(parseFloat(proposedAdj))}% salary adjustment.`,
-                bold: true 
-              })],
+              text: `The effect of Macroeconomic elements on the purchasing power of staff members in ${selectedAnalysis.country} is a ${parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of ${Math.ceil(Math.abs(parseFloat(macroEffect)))}% resulting in a ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} adjustment of ${Math.ceil(parseFloat(proposedAdj))}%`,
               spacing: { after: 200 },
             })
           ] : []),
