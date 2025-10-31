@@ -47,6 +47,16 @@ export const FCAAnalysisWorkflow = () => {
     external_candidate_level: "", // For external candidates: entry, experienced, specialized
   });
   
+  // For external candidates - manual entry
+  const [externalCandidateData, setExternalCandidateData] = useState({
+    employee_name: "",
+    country: "",
+    level: "",
+    job_title: "",
+    current_salary: "",
+    currency: "",
+  });
+  
   const calculateYearsWithOrganisation = (hireDate: string | null): string => {
     if (!hireDate) return "N/A";
     
@@ -77,6 +87,45 @@ export const FCAAnalysisWorkflow = () => {
   useEffect(() => {
     loadEmployees();
   }, []);
+  
+  // Fetch payband data for external candidates when country and level are entered
+  useEffect(() => {
+    if (formData.analysis_type === 'external_candidate_initial' && 
+        externalCandidateData.country && 
+        externalCandidateData.level) {
+      fetchPaybandForExternalCandidate();
+    }
+  }, [externalCandidateData.country, externalCandidateData.level, formData.analysis_type]);
+  
+  const fetchPaybandForExternalCandidate = async () => {
+    if (!externalCandidateData.country || !externalCandidateData.level) return;
+    
+    const { data, error } = await supabase
+      .from("payband_midpoints")
+      .select("*")
+      .eq("country", externalCandidateData.country)
+      .eq("level", externalCandidateData.level)
+      .order("effective_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+      
+    if (!error && data) {
+      setPaybandInfo(data);
+    }
+  };
+  
+  // Helper to get current employee/candidate data
+  const getCurrentEmployeeData = () => {
+    if (formData.analysis_type === 'external_candidate_initial') {
+      return {
+        ...externalCandidateData,
+        current_salary: parseFloat(externalCandidateData.current_salary) || 0,
+        compa_ratio: null,
+        hire_date: null,
+      };
+    }
+    return selectedEmployee;
+  };
 
   const loadEmployees = async () => {
     const { data, error } = await supabase
@@ -274,41 +323,57 @@ export const FCAAnalysisWorkflow = () => {
   };
 
   const handleSave = async () => {
-    if (!selectedEmployee) return;
+    const currentData = getCurrentEmployeeData();
+    if (!currentData || !currentData.employee_name || !currentData.country || !currentData.level) {
+      toast({ title: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
     try {
-      // Use midpoint from HumanForce data and determine data source
-      const midpointFromData = selectedEmployee.raw_data?.midpoint_of_band || selectedEmployee.raw_data?.["Midpoint of band"];
-      const midpoint = midpointFromData ? parseFloat(midpointFromData) : 0;
-      const isWTW = WTW_COUNTRIES.includes(selectedEmployee.country);
+      const currentData = getCurrentEmployeeData();
       
-      const compaRatioCurrent = calculateCompaRatio(selectedEmployee.current_salary, midpoint);
+      // Get midpoint - either from HumanForce data or from payband lookup
+      let midpoint = 0;
+      let isWTW = false;
+      
+      if (formData.analysis_type === 'external_candidate_initial') {
+        // For external candidates, use payband midpoint
+        midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
+        isWTW = WTW_COUNTRIES.includes(currentData.country);
+      } else {
+        // For existing staff, use midpoint from HumanForce data
+        const midpointFromData = selectedEmployee?.raw_data?.midpoint_of_band || selectedEmployee?.raw_data?.["Midpoint of band"];
+        midpoint = midpointFromData ? parseFloat(midpointFromData) : 0;
+        isWTW = WTW_COUNTRIES.includes(selectedEmployee.country);
+      }
+      
+      const compaRatioCurrent = calculateCompaRatio(currentData.current_salary, midpoint);
       const compaRatioProposed = calculateCompaRatio(parseFloat(formData.proposed_salary), midpoint);
 
       const { data: analysis, error } = await supabase
         .from("fca_analyses")
         .insert({
-          employee_name: selectedEmployee.employee_name,
-          country: selectedEmployee.country,
-          level: selectedEmployee.level,
-          current_salary: selectedEmployee.current_salary,
+          employee_name: currentData.employee_name,
+          country: currentData.country,
+          level: currentData.level,
+          current_salary: currentData.current_salary,
           proposed_salary: parseFloat(formData.proposed_salary),
-          currency: selectedEmployee.currency,
+          currency: currentData.currency || (formData.contract_type === "consultancy" ? "USD" : paybandInfo?.currency),
           contract_type: formData.contract_type,
           analysis_type: formData.analysis_type,
           kf_midpoint: isWTW ? null : midpoint,
           wtw_midpoint: isWTW ? midpoint : null,
           compa_ratio_current: compaRatioCurrent,
           compa_ratio_proposed: compaRatioProposed,
-          inflation_rate: parseFloat(formData.inflation_rate) || null,
-          fx_rate: parseFloat(formData.fx_rate_current) || null,
+          inflation_rate: formData.analysis_type === 'external_candidate_initial' ? null : (parseFloat(formData.inflation_rate) || null),
+          fx_rate: formData.analysis_type === 'external_candidate_initial' ? null : (parseFloat(formData.fx_rate_current) || null),
           fx_year: new Date().getFullYear().toString(),
-          performance_rating: formData.performance_rating,
-          years_in_role: calculateYearsInRoleNumeric(selectedEmployee.hire_date),
+          performance_rating: formData.analysis_type === 'external_candidate_initial' ? null : formData.performance_rating,
+          years_in_role: formData.analysis_type === 'external_candidate_initial' ? null : calculateYearsInRoleNumeric(selectedEmployee?.hire_date),
           rationale: formData.rationale,
           recommendation: formData.recommendation,
-          humanforce_record_id: selectedEmployee.id,
+          humanforce_record_id: formData.analysis_type === 'external_candidate_initial' ? null : selectedEmployee?.id,
         })
         .select()
         .single();
@@ -322,8 +387,11 @@ export const FCAAnalysisWorkflow = () => {
         fca_analysis_id: analysis.id,
         status: "draft",
         document_content: { 
-          employee: selectedEmployee, 
-          formData, 
+          employee: formData.analysis_type === 'external_candidate_initial' ? currentData : selectedEmployee, 
+          formData: {
+            ...formData,
+            external_candidate_level: formData.external_candidate_level,
+          }, 
           analysis,
           budget_amount: formData.budget_amount,
         },
@@ -374,67 +442,142 @@ export const FCAAnalysisWorkflow = () => {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Select Employee</Label>
-            <Select onValueChange={handleEmployeeSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose an employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.map((emp) => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    {emp.employee_name} - {emp.country} ({emp.level})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedEmployee && (
+          {formData.analysis_type === 'external_candidate_initial' ? (
             <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Years with the Organisation</Label>
-                  <Input
-                    value={selectedEmployee.hire_date ? calculateYearsWithOrganisation(selectedEmployee.hire_date) : "N/A"}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Staff Start Date</Label>
-                  <Input
-                    type="date"
-                    value={selectedEmployee.hire_date || ""}
-                    disabled
-                    className="bg-muted"
-                  />
+              <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <h4 className="font-semibold mb-2">External Candidate Details</h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Enter the candidate's information manually as they are not yet in the system.
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Candidate Name *</Label>
+                    <Input
+                      placeholder="Full name"
+                      value={externalCandidateData.employee_name}
+                      onChange={(e) => setExternalCandidateData({ ...externalCandidateData, employee_name: e.target.value })}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Country *</Label>
+                    <Select
+                      value={externalCandidateData.country}
+                      onValueChange={(value) => {
+                        setExternalCandidateData({ ...externalCandidateData, country: value });
+                        // Auto-determine currency based on country
+                        // We'll use the same logic as the database trigger
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[...KF_COUNTRIES, ...WTW_COUNTRIES].sort().map((country) => (
+                          <SelectItem key={country} value={country}>{country}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Level *</Label>
+                    <Input
+                      placeholder="e.g., L1, L2, L3"
+                      value={externalCandidateData.level}
+                      onChange={(e) => setExternalCandidateData({ ...externalCandidateData, level: e.target.value })}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Job Title *</Label>
+                    <Input
+                      placeholder="Position title"
+                      value={externalCandidateData.job_title}
+                      onChange={(e) => setExternalCandidateData({ ...externalCandidateData, job_title: e.target.value })}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Current Salary (if applicable)</Label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={externalCandidateData.current_salary}
+                      onChange={(e) => setExternalCandidateData({ ...externalCandidateData, current_salary: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <Label>Select Employee</Label>
+              <Select onValueChange={handleEmployeeSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose an employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.employee_name} - {emp.country} ({emp.level})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-              <div className="p-4 bg-muted rounded-lg space-y-2">
-                <h4 className="font-semibold">Employee Information</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Current Compa-Ratio:</span>{" "}
-                    <span className="font-medium">
-                      {selectedEmployee.compa_ratio 
-                        ? `${(selectedEmployee.compa_ratio * 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
-                        : paybandInfo 
-                          ? (() => {
-                              const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
-                              const cr = midpoint > 0 ? (selectedEmployee.current_salary / midpoint) * 100 : 0;
-                              return `${cr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
-                            })()
-                          : "N/A"}
-                    </span>
+          {(selectedEmployee || (formData.analysis_type === 'external_candidate_initial' && externalCandidateData.employee_name && externalCandidateData.country && externalCandidateData.level)) && (
+            <>
+              {formData.analysis_type !== 'external_candidate_initial' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Years with the Organisation</Label>
+                      <Input
+                        value={selectedEmployee.hire_date ? calculateYearsWithOrganisation(selectedEmployee.hire_date) : "N/A"}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Staff Start Date</Label>
+                      <Input
+                        type="date"
+                        value={selectedEmployee.hire_date || ""}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Job Title:</span>{" "}
-                    <span className="font-medium">{selectedEmployee.job_title || "N/A"}</span>
+
+                  <div className="p-4 bg-muted rounded-lg space-y-2">
+                    <h4 className="font-semibold">Employee Information</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Current Compa-Ratio:</span>{" "}
+                        <span className="font-medium">
+                          {selectedEmployee.compa_ratio 
+                            ? `${(selectedEmployee.compa_ratio * 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
+                            : paybandInfo 
+                              ? (() => {
+                                  const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
+                                  const cr = midpoint > 0 ? (selectedEmployee.current_salary / midpoint) * 100 : 0;
+                                  return `${cr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+                                })()
+                              : "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Job Title:</span>{" "}
+                        <span className="font-medium">{selectedEmployee.job_title || "N/A"}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
 
               {paybandInfo && (
                 <div className="p-4 bg-muted rounded-lg space-y-2">
@@ -443,13 +586,13 @@ export const FCAAnalysisWorkflow = () => {
                     <div>
                       <span className="text-muted-foreground">KF Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.kf_midpoint ? paybandInfo.kf_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {selectedEmployee.currency}
+                        {paybandInfo.kf_midpoint ? paybandInfo.kf_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {paybandInfo.currency || getCurrentEmployeeData()?.currency || ""}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">WTW Midpoint:</span>{" "}
                       <span className="font-medium">
-                        {paybandInfo.wtw_midpoint ? paybandInfo.wtw_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {selectedEmployee.currency}
+                        {paybandInfo.wtw_midpoint ? paybandInfo.wtw_midpoint.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A"} {paybandInfo.currency || getCurrentEmployeeData()?.currency || ""}
                       </span>
                     </div>
                     <div>
@@ -464,10 +607,15 @@ export const FCAAnalysisWorkflow = () => {
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"}</Label>
+                  <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"} {formData.analysis_type === 'external_candidate_initial' ? "(if known)" : ""}</Label>
                   <Input 
-                    value={selectedEmployee.current_salary?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
-                    disabled 
+                    value={getCurrentEmployeeData()?.current_salary?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || (formData.analysis_type === 'external_candidate_initial' ? "" : "N/A")} 
+                    disabled={formData.analysis_type !== 'external_candidate_initial'}
+                    type="text"
+                    onChange={formData.analysis_type === 'external_candidate_initial' ? (e) => {
+                      const value = e.target.value.replace(/,/g, '');
+                      setExternalCandidateData({ ...externalCandidateData, current_salary: value });
+                    } : undefined}
                   />
                 </div>
                 <div className="space-y-2">
@@ -482,7 +630,7 @@ export const FCAAnalysisWorkflow = () => {
                       }
                     }}
                   />
-                  {selectedEmployee && (
+                  {getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
                     <p className="text-xs text-muted-foreground">
                       Total % increase: {(
                         (parseFloat(formData.merit_increase?.toString() || "0")) + 
@@ -490,10 +638,10 @@ export const FCAAnalysisWorkflow = () => {
                       ).toFixed(2)}%
                       {" = "}
                       {Math.ceil(
-                        selectedEmployee.current_salary * 
+                        getCurrentEmployeeData().current_salary * 
                         (1 + ((parseFloat(formData.merit_increase?.toString() || "0")) + 
                         (parseFloat(formData.proposed_adjustment || "0"))) / 100)
-                      ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {selectedEmployee.currency}
+                      ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {getCurrentEmployeeData().currency || paybandInfo?.currency}
                     </p>
                   )}
                 </div>
@@ -512,9 +660,9 @@ export const FCAAnalysisWorkflow = () => {
                       }
                     }}
                   />
-                  {formData.contract_type === "consultancy" && selectedEmployee && (
+                  {formData.contract_type === "consultancy" && getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      FYI 6% = {Math.ceil(selectedEmployee.current_salary * 1.06).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {selectedEmployee.currency}
+                      FYI 6% = {Math.ceil(getCurrentEmployeeData().current_salary * 1.06).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {getCurrentEmployeeData().currency || paybandInfo?.currency}
                     </p>
                   )}
                 </div>
@@ -552,11 +700,17 @@ export const FCAAnalysisWorkflow = () => {
                       else if (value === 'specialized') targetCompaRatio = 105;
                       
                       // Calculate what percentage increase is needed to reach target CR
-                      if (paybandInfo && selectedEmployee && targetCompaRatio > 0) {
+                      const currentData = getCurrentEmployeeData();
+                      if (paybandInfo && currentData && targetCompaRatio > 0) {
                         const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
                         const targetSalary = midpoint * (targetCompaRatio / 100);
-                        const increaseNeeded = ((targetSalary - selectedEmployee.current_salary) / selectedEmployee.current_salary) * 100;
-                        setFormData(prev => ({ ...prev, merit_increase: Math.max(0, increaseNeeded) }));
+                        
+                        // Set proposed salary directly to target salary for external candidates
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          proposed_salary: targetSalary.toString(),
+                          merit_increase: 0 // No merit increase for external candidates, just positioning
+                        }));
                       }
                     }}
                   >
@@ -618,19 +772,20 @@ export const FCAAnalysisWorkflow = () => {
                     </Label>
                     <Select
                       value={formData.performance_rating || ""}
-                      onValueChange={(value) => {
-                        // Calculate merit increase when performance rating changes
-                        // Use the compa_ratio from HumanForce data if available, otherwise calculate it
-                        let currentCompaRatio = 0;
-                        if (selectedEmployee.compa_ratio) {
-                          currentCompaRatio = selectedEmployee.compa_ratio;
-                        } else {
-                          const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
-                          currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
-                        }
-                        const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
-                        
-                        setFormData({ 
+                    onValueChange={(value) => {
+                      // Calculate merit increase when performance rating changes
+                      // Use the compa_ratio from HumanForce data if available, otherwise calculate it
+                      const currentData = getCurrentEmployeeData();
+                      let currentCompaRatio = 0;
+                      if (currentData.compa_ratio) {
+                        currentCompaRatio = currentData.compa_ratio;
+                      } else {
+                        const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
+                        currentCompaRatio = midpoint > 0 ? currentData.current_salary / midpoint : 0;
+                      }
+                      const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
+                      
+                      setFormData({
                           ...formData, 
                           performance_rating: value,
                           merit_increase: meritIncrease
