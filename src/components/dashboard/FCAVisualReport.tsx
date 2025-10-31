@@ -464,6 +464,15 @@ export const FCAVisualReport = () => {
   const midpoint = selectedAnalysis.kf_midpoint || selectedAnalysis.wtw_midpoint || 0;
   const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
   const dataYear = selectedAnalysis.kf_midpoint ? 2024 : 2025;
+  
+  // Get employment history from stored fee approval data
+  const employeeData = feeApprovalData?.document_content?.employee;
+  const rawData = employeeData?.raw_data as any;
+  const gender = rawData?.Gender || rawData?.gender;
+  const pronoun = gender?.toLowerCase() === "male" ? "he" : gender?.toLowerCase() === "female" ? "she" : "they";
+  const hireDate = employeeData?.hire_date ? new Date(employeeData.hire_date) : null;
+  const hireDateFormatted = hireDate ? hireDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "N/A";
+  const yearsWithOrg = hireDate ? calculateYearsWithOrganisation(employeeData.hire_date) : "N/A";
 
   return (
     <div className="space-y-6">
@@ -562,7 +571,9 @@ export const FCAVisualReport = () => {
                 <TableCell>
                   "Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. 
                   The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(midpoint).toLocaleString()} {selectedAnalysis.currency} 
-                  (which is also 100% Compa-ratio). The source of the data is {dataSource} and values date from {dataYear}.
+                  (which is also 100% Compa-ratio).
+                  
+                  {selectedAnalysis.employee_name} has been with the organisation for {yearsWithOrg}, {pronoun} joined in {hireDateFormatted}.
                   
                   {selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, 
                   P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. 
