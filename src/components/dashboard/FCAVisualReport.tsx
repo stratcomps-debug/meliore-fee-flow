@@ -41,14 +41,27 @@ export const FCAVisualReport = () => {
     setSelectedAnalysis(analysis);
 
     if (analysis) {
-      // Fetch cohort data for equity distance calculation
-      const { data: cohortMembers } = await supabase
-        .from("humanforce_data")
-        .select("*")
-        .eq("country", analysis.country)
-        .eq("level", analysis.level);
+      // If analyzing an employee, compare to humanforce_data
+      // If analyzing a consultant, compare to other consultant FCA analyses
+      if (analysis.contract_type === 'consultancy') {
+        const { data: consultantCohort } = await supabase
+          .from("fca_analyses")
+          .select("*")
+          .eq("country", analysis.country)
+          .eq("level", analysis.level)
+          .eq("contract_type", "consultancy");
 
-      setCohortData(cohortMembers || []);
+        setCohortData(consultantCohort || []);
+      } else {
+        // For employees, fetch from humanforce_data
+        const { data: cohortMembers } = await supabase
+          .from("humanforce_data")
+          .select("*")
+          .eq("country", analysis.country)
+          .eq("level", analysis.level);
+
+        setCohortData(cohortMembers || []);
+      }
 
       // Fetch fee approval data
       const { data: feeApproval } = await supabase
@@ -64,23 +77,19 @@ export const FCAVisualReport = () => {
   const calculateEquityDistance = () => {
     if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0, count: 0, contractType: '' };
     
-    // Filter cohort by contract type - only compare employees to employees, consultants to consultants
-    const sameContractTypeCohort = cohortData.filter((m: any) => 
-      m.contract_type === selectedAnalysis?.contract_type
-    );
-    
+    // No need to filter by contract type - cohort is already filtered by contract type in the query
     // Get all staff members excluding the current analysis subject
-    const otherStaffMembers = sameContractTypeCohort.filter((m: any) => 
+    const otherStaffMembers = cohortData.filter((m: any) => 
       m.employee_name !== selectedAnalysis?.employee_name
     );
     
     // X = number of other staff members (or total cohort if it's a candidate/new hire)
-    const staffCount = otherStaffMembers.length > 0 ? otherStaffMembers.length : sameContractTypeCohort.length;
+    const staffCount = otherStaffMembers.length > 0 ? otherStaffMembers.length : cohortData.length;
     
     // Calculate current equity distance (A) - based on compa-ratios of other staff
     const compaRatios = otherStaffMembers.length > 0 
       ? otherStaffMembers.map((m: any) => m.compa_ratio || 0)
-      : sameContractTypeCohort.map((m: any) => m.compa_ratio || 0);
+      : cohortData.map((m: any) => m.compa_ratio || 0);
     
     const maxCompaRatio = Math.max(...compaRatios);
     const minCompaRatio = Math.min(...compaRatios);
