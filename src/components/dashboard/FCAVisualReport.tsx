@@ -926,36 +926,6 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  <div>Our Initial Offer</div>
-                  <div className="text-xs text-muted-foreground font-normal mt-1">To begin discussions</div>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Check className="h-4 w-4 mx-auto" />
-                </TableCell>
-                <TableCell className="whitespace-pre-line">
-                  {(() => {
-                    const proposedCR = (selectedAnalysis.proposed_salary / midpoint) * 100;
-                    const currentCR = selectedAnalysis.compa_ratio_current;
-                    const totalIncrease = ((selectedAnalysis.proposed_salary - selectedAnalysis.current_salary) / selectedAnalysis.current_salary) * 100;
-                    
-                    if (proposedCR > 120) {
-                      if (currentCR > 120) {
-                        const lumpSum = selectedAnalysis.proposed_salary - selectedAnalysis.current_salary;
-                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
-                      } else {
-                        const baseSalaryAt120 = midpoint * 1.20;
-                        const lumpSum = selectedAnalysis.proposed_salary - baseSalaryAt120;
-                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
-                      }
-                    } else {
-                      return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`;
-                    }
-                  })()}
-                </TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell className="font-medium">
                   <div>Equity Distance Analysis</div>
                   <div className="text-xs text-muted-foreground font-normal mt-1">Standard equity distance is 10% (flexibility up to 15% based on cohort dynamics and JEDI)</div>
                 </TableCell>
@@ -1086,6 +1056,36 @@ export const FCAVisualReport = () => {
                   </TableCell>
                 </TableRow>
               )}
+
+              <TableRow className="bg-primary/5 border-t-2 border-primary">
+                <TableCell className="font-bold text-lg">
+                  <div>Our Initial Offer</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">(to begin discussions)</div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Check className="h-4 w-4 mx-auto text-primary" />
+                </TableCell>
+                <TableCell className="whitespace-pre-line font-semibold">
+                  {(() => {
+                    const proposedCR = (selectedAnalysis.proposed_salary / midpoint) * 100;
+                    const currentCR = selectedAnalysis.compa_ratio_current;
+                    const totalIncrease = ((selectedAnalysis.proposed_salary - selectedAnalysis.current_salary) / selectedAnalysis.current_salary) * 100;
+                    
+                    if (proposedCR > 120) {
+                      if (currentCR > 120) {
+                        const lumpSum = selectedAnalysis.proposed_salary - selectedAnalysis.current_salary;
+                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
+                      } else {
+                        const baseSalaryAt120 = midpoint * 1.20;
+                        const lumpSum = selectedAnalysis.proposed_salary - baseSalaryAt120;
+                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
+                      }
+                    } else {
+                      return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`;
+                    }
+                  })()}
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </CardContent>
