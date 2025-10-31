@@ -482,15 +482,25 @@ export const FCAAnalysisWorkflow = () => {
                   
                   <div className="space-y-2">
                     <Label>Level *</Label>
-                    <Input
-                      placeholder="e.g., L1, L2, L3"
+                    <Select
                       value={externalCandidateData.level}
-                      onChange={(e) => {
-                        setExternalCandidateData({ ...externalCandidateData, level: e.target.value });
+                      onValueChange={(value) => {
+                        setExternalCandidateData({ ...externalCandidateData, level: value });
                         // Reset candidate level selection when level changes
                         setFormData(prev => ({ ...prev, external_candidate_level: "" }));
                       }}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["1", "2", "3", "4", "5", "6", "7", "8"].map((level) => (
+                          <SelectItem key={level} value={level}>
+                            Level {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
