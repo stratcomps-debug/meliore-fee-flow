@@ -175,10 +175,39 @@ export const FCAVisualReport = () => {
     const avgCurrent = cohortData.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / cohortData.length;
     
     // Include proposed in calculation
-    const totalCompa = cohortData.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) + (selectedAnalysis?.compa_ratio_proposed || 0);
+    const totalCompa = cohortData.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) + ((selectedAnalysis?.compa_ratio_proposed || 0) / 100);
     const avgProposed = totalCompa / (cohortData.length + 1);
     
     return { current: avgCurrent * 100, proposed: avgProposed * 100 };
+  };
+
+  const calculateCohortAnalysis = () => {
+    if (!cohortData || cohortData.length === 0 || !selectedAnalysis) {
+      return { cohortCount: 0, averageCR: 0, supervisorName: 'N/A' };
+    }
+
+    // Get supervisor name from the analysis or from fee approval data
+    const employeeData = feeApprovalData?.document_content?.employee;
+    const rawData = employeeData?.raw_data as any;
+    const supervisorName = rawData?.["Supervisor Name"] || rawData?.supervisor || 'N/A';
+
+    // Filter cohort members who report to the same supervisor (excluding current staff member)
+    const cohortUnderSameSupervisor = cohortData.filter((m: any) => {
+      if (m.employee_name === selectedAnalysis.employee_name) return false;
+      const memberSupervisor = m.raw_data?.["Supervisor Name"] || m.raw_data?.supervisor;
+      return memberSupervisor === supervisorName;
+    });
+
+    // Calculate average CR of cohort under same supervisor
+    const averageCR = cohortUnderSameSupervisor.length > 0
+      ? cohortUnderSameSupervisor.reduce((sum: number, member: any) => sum + (member.compa_ratio || 0), 0) / cohortUnderSameSupervisor.length
+      : 0;
+
+    return {
+      cohortCount: cohortUnderSameSupervisor.length,
+      averageCR: averageCR * 100, // Convert to percentage
+      supervisorName
+    };
   };
 
   const getGenderGapAnalysis = () => {
@@ -367,7 +396,9 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `From the staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortData?.length || 0} staff members are currently in this cohort.`,
+            text: cohortAnalysis.cohortCount > 0
+              ? `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortAnalysis.cohortCount} of them are reporting to ${cohortAnalysis.supervisorName}. The average Compa-ratio of these other staff reporting to ${cohortAnalysis.supervisorName} is ${Math.ceil(cohortAnalysis.averageCR)}%.`
+              : `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, none of them are reporting to ${cohortAnalysis.supervisorName}.`,
             spacing: { after: 200 },
           }),
 
@@ -580,6 +611,7 @@ export const FCAVisualReport = () => {
 
   const equityDistance = calculateEquityDistance();
   const peerGroup = calculatePeerGroupAnalysis();
+  const cohortAnalysis = calculateCohortAnalysis();
   const avgCompaRatio = calculateAverageCompaRatio();
   const midpoint = selectedAnalysis.kf_midpoint || selectedAnalysis.wtw_midpoint || 0;
   const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
@@ -729,7 +761,9 @@ export const FCAVisualReport = () => {
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  From the staff members on Meliore grading Level {selectedAnalysis.level} in {selectedAnalysis.country}, {cohortData?.length || 0} staff members are currently in this cohort.
+                  {cohortAnalysis.cohortCount > 0
+                    ? `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortAnalysis.cohortCount} of them are reporting to ${cohortAnalysis.supervisorName}. The average Compa-ratio of these other staff reporting to ${cohortAnalysis.supervisorName} is ${Math.ceil(cohortAnalysis.averageCR)}%.`
+                    : `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, none of them are reporting to ${cohortAnalysis.supervisorName}.`}
                 </TableCell>
               </TableRow>
 
