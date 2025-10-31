@@ -186,7 +186,7 @@ export const FCAVisualReport = () => {
           new Paragraph({
             text: `Budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of ${feeApprovalData?.document_content?.budget_amount ? 
               `${Math.ceil(parseFloat(feeApprovalData.document_content.budget_amount)).toLocaleString()} ${selectedAnalysis.currency}` : 
-              `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`} per year.${selectedAnalysis.contract_type === "consultancy" ? " (Minimum 6% increase from current fee)" : ""}`,
+              `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`} per year.${selectedAnalysis.contract_type === "consultancy" ? " (6% increase from current fee)" : ""}`,
             spacing: { after: 200 },
           }),
 
@@ -345,7 +345,7 @@ export const FCAVisualReport = () => {
         { Section: "", Details: "" },
         
         { Section: "BUDGETED AMOUNT", Details: "" },
-        { Section: "Analysis", Details: `Budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year.${selectedAnalysis.contract_type === "consultancy" ? " (Minimum 6% increase from current fee)" : ""}` },
+        { Section: "Analysis", Details: `Budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year.${selectedAnalysis.contract_type === "consultancy" ? " (6% increase from current fee)" : ""}` },
         { Section: "", Details: "" },
         
         { Section: "COMPENSATION PHILOSOPHY", Details: "" },
@@ -511,7 +511,7 @@ export const FCAVisualReport = () => {
             <TableBody>
               <TableRow>
                 <TableCell className="font-medium">
-                  What is the approved budgeted amount confirmed by Finance Manager
+                  What is the approved budgeted amount confirmed by Finance and P&C
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -522,7 +522,7 @@ export const FCAVisualReport = () => {
                     `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`} per year.
                   {selectedAnalysis.contract_type === "consultancy" && (
                     <span className="text-muted-foreground text-sm block mt-1">
-                      (Minimum 6% increase from current fee)
+                      (6% increase from current fee)
                     </span>
                   )}
                 </TableCell>
