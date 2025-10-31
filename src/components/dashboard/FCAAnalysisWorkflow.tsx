@@ -180,6 +180,24 @@ export const FCAAnalysisWorkflow = () => {
     }
   };
 
+  // Auto-update proposed salary when percentages change
+  useEffect(() => {
+    if (selectedEmployee && (formData.merit_increase || formData.proposed_adjustment)) {
+      const totalIncrease = 
+        (parseFloat(formData.merit_increase?.toString() || "0")) + 
+        (parseFloat(formData.proposed_adjustment || "0"));
+      
+      const newProposedSalary = Math.ceil(
+        selectedEmployee.current_salary * (1 + totalIncrease / 100)
+      );
+      
+      setFormData(prev => ({
+        ...prev,
+        proposed_salary: newProposedSalary.toString()
+      }));
+    }
+  }, [formData.merit_increase, formData.proposed_adjustment, selectedEmployee]);
+
   const calculateCompaRatio = (salary: number, midpoint: number) => {
     if (!midpoint) return 0;
     return (salary / midpoint) * 100;
