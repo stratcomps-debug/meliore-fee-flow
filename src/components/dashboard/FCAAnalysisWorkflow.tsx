@@ -373,6 +373,7 @@ export const FCAAnalysisWorkflow = () => {
           years_in_role: formData.analysis_type === 'external_candidate_initial' ? null : calculateYearsInRoleNumeric(selectedEmployee?.hire_date),
           rationale: formData.rationale,
           recommendation: formData.recommendation,
+          supervisor_name: formData.supervisor_name || null,
           humanforce_record_id: formData.analysis_type === 'external_candidate_initial' ? null : selectedEmployee?.id,
         })
         .select()
