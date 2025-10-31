@@ -184,10 +184,13 @@ export const FCAVisualReport = () => {
       return { cohortCount: 0, averageCR: 0, supervisorName: 'N/A', cohortMembers: [] };
     }
 
-    // Get supervisor name from the analysis or from fee approval data
-    const employeeData = feeApprovalData?.document_content?.employee;
-    const rawData = employeeData?.raw_data as any;
-    const supervisorName = rawData?.["Supervisor Name"] || rawData?.supervisor || 'N/A';
+    // Get supervisor name - prioritize from analysis record for external candidates
+    const supervisorName = selectedAnalysis.supervisor_name || 
+                          (() => {
+                            const employeeData = feeApprovalData?.document_content?.employee;
+                            const rawData = employeeData?.raw_data as any;
+                            return rawData?.["Supervisor Name"] || rawData?.supervisor || 'N/A';
+                          })();
 
     // Filter cohort members who report to the same supervisor (excluding current staff member)
     const cohortUnderSameSupervisor = cohortData.filter((m: any) => {
