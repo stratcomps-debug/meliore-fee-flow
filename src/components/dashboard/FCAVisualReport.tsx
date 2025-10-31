@@ -446,6 +446,14 @@ export const FCAVisualReport = () => {
                   }),
                   new Paragraph({
                     text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                    spacing: { after: 200 },
+                  }),
+                  new Paragraph({
+                    text: "Our Initial Offer (to begin discussions):",
+                    spacing: { after: 100 },
+                  }),
+                  new Paragraph({
+                    text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
                     spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
                   }),
                 ];
@@ -460,12 +468,28 @@ export const FCAVisualReport = () => {
                   }),
                   new Paragraph({
                     text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                    spacing: { after: 200 },
+                  }),
+                  new Paragraph({
+                    text: "Our Initial Offer (to begin discussions):",
+                    spacing: { after: 100 },
+                  }),
+                  new Paragraph({
+                    text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
                     spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
                   }),
                 ];
               }
             } else {
               return [
+                new Paragraph({
+                  text: `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`,
+                  spacing: { after: 200 },
+                }),
+                new Paragraph({
+                  text: "Our Initial Offer (to begin discussions):",
+                  spacing: { after: 100 },
+                }),
                 new Paragraph({
                   text: `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`,
                   spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
@@ -866,15 +890,15 @@ export const FCAVisualReport = () => {
                       // If current salary is already above 120%, keep it and pay difference as lump sum
                       if (currentCR > 120) {
                         const lumpSum = selectedAnalysis.proposed_salary - selectedAnalysis.current_salary;
-                        return `When a staff's ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "pay"} is above the ${selectedAnalysis.contract_type === "consultancy" ? "fee band" : "pay scale"} which is 120%CR, any increase above that is paid as one-off.\n\nIn view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
+                        return `When a staff's ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "pay"} is above the ${selectedAnalysis.contract_type === "consultancy" ? "fee band" : "pay scale"} which is 120%CR, any increase above that is paid as one-off.\n\nIn view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.\n\nOur Initial Offer (to begin discussions):\n\nIn view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
                       } else {
                         // Current is below 120%, so cap base at 120% and rest is lump sum
                         const baseSalaryAt120 = midpoint * 1.20;
                         const lumpSum = selectedAnalysis.proposed_salary - baseSalaryAt120;
-                        return `When a staff's ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "pay"} is above the ${selectedAnalysis.contract_type === "consultancy" ? "fee band" : "pay scale"} which is 120%CR, any increase above that is paid as one-off.\n\nIn view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
+                        return `When a staff's ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "pay"} is above the ${selectedAnalysis.contract_type === "consultancy" ? "fee band" : "pay scale"} which is 120%CR, any increase above that is paid as one-off.\n\nIn view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.\n\nOur Initial Offer (to begin discussions):\n\nIn view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
                       }
                     } else {
-                      return `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`;
+                      return `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.\n\nOur Initial Offer (to begin discussions):\n\nBased on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`;
                     }
                   })()}
                   {selectedAnalysis.rationale && `\n\nRationale: ${selectedAnalysis.rationale}`}
