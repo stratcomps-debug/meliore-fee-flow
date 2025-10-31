@@ -783,32 +783,28 @@ export const FCAAnalysisWorkflow = () => {
                 </div>
               )}
 
-              <div className="p-4 bg-muted rounded-lg space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">
-                    {formData.analysis_type === 'external_candidate_initial' 
-                      ? "Positioning Assessment"
-                      : formData.contract_type === "consultancy" ? "SOW Assessment" : "Performance Assessment"}
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs whitespace-nowrap">
-                      {formData.analysis_type === 'external_candidate_initial'
-                        ? "Target CR Adjustment (%)"
-                        : formData.contract_type === "consultancy" 
+              {formData.analysis_type !== 'external_candidate_initial' && (
+                <div className="p-4 bg-muted rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">
+                      {formData.contract_type === "consultancy" ? "SOW Assessment" : "Performance Assessment"}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs whitespace-nowrap">
+                        {formData.contract_type === "consultancy" 
                           ? "SOW Assessment Related Increase (%)" 
                           : "Performance Related Increase (%)"}
-                    </Label>
-                    <Input
-                      type="text"
-                      step="0.01"
-                      value={formData.merit_increase ? parseFloat(formData.merit_increase.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
-                      disabled
-                      className="bg-muted font-semibold w-24"
-                    />
+                      </Label>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        value={formData.merit_increase ? parseFloat(formData.merit_increase.toString()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
+                        disabled
+                        className="bg-muted font-semibold w-24"
+                      />
+                    </div>
                   </div>
-                </div>
-                
-                {formData.analysis_type !== 'external_candidate_initial' && (
+                  
                   <div className="space-y-2">
                     <Label>
                       {formData.contract_type === "consultancy" ? "SOW Rating" : "Performance Rating"}
@@ -847,25 +843,14 @@ export const FCAAnalysisWorkflow = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-                
-                {formData.analysis_type === 'external_candidate_initial' && formData.external_candidate_level && (
-                  <p className="text-sm text-muted-foreground">
-                    {formData.external_candidate_level === 'entry' && 
-                      "Positioning at 90% compa-ratio per Total Rewards Policy for entry-level candidates"}
-                    {formData.external_candidate_level === 'experienced' && 
-                      "Positioning at 95% compa-ratio per Total Rewards Policy for experienced candidates"}
-                    {formData.external_candidate_level === 'specialized' && 
-                      "Positioning at 105% compa-ratio per Total Rewards Policy for specialized roles"}
-                  </p>
-                )}
-              </div>
+                </div>
+              )}
 
-              <div className="p-4 bg-muted rounded-lg space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold">Macroeconomic Analysis</h4>
-                    {formData.analysis_type !== 'external_candidate_initial' && (
+              {formData.analysis_type !== 'external_candidate_initial' && (
+                <div className="p-4 bg-muted rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold">Macroeconomic Analysis</h4>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
@@ -876,10 +861,8 @@ export const FCAAnalysisWorkflow = () => {
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    )}
-                    {fetchingMacroData && <span className="text-sm text-muted-foreground">Fetching data...</span>}
-                  </div>
-                  {formData.analysis_type !== 'external_candidate_initial' && (
+                      {fetchingMacroData && <span className="text-sm text-muted-foreground">Fetching data...</span>}
+                    </div>
                     <div className="flex items-center gap-2">
                       <Label className="text-xs whitespace-nowrap">Proposed Adjustment (50% of Total)</Label>
                       <Input
@@ -890,14 +873,7 @@ export const FCAAnalysisWorkflow = () => {
                         className="bg-muted font-semibold w-24"
                       />
                     </div>
-                  )}
-                </div>
-                
-                {formData.analysis_type === 'external_candidate_initial' ? (
-                  <p className="text-sm text-muted-foreground italic">
-                    Not applicable: External candidate positioning based on Total Rewards Policy
-                  </p>
-                ) : (
+                  </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -1021,8 +997,8 @@ export const FCAAnalysisWorkflow = () => {
                     />
                   </div>
                 </div>
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Rationale</Label>
