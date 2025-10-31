@@ -57,6 +57,7 @@ export const HumanForceUpload = () => {
         hire_date: convertExcelDate(row["Job Start Date"] || row.Job_Start_Date),
         performance_rating: row["Performance Rating"] || null,
         compa_ratio: parseFloat(row.CR || 0),
+        employment_condition: row["Employment Condition"] || null,
         raw_data: {
           ...row,
           bottom_of_band: row["Bottom of band"],

@@ -54,11 +54,13 @@ export const FCAVisualReport = () => {
         setCohortData(consultantCohort || []);
       } else {
         // For employees, fetch from humanforce_data
+        // Filter to only employees (exclude contractors/consultants)
         const { data: cohortMembers } = await supabase
           .from("humanforce_data")
           .select("*")
           .eq("country", analysis.country)
-          .eq("level", analysis.level);
+          .eq("level", analysis.level)
+          .or("employment_condition.is.null,employment_condition.neq.Contractor,employment_condition.neq.Consultancy");
 
         setCohortData(cohortMembers || []);
       }

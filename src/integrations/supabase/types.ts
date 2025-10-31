@@ -167,6 +167,7 @@ export type Database = {
           current_salary: number | null
           employee_id: string | null
           employee_name: string
+          employment_condition: string | null
           hire_date: string | null
           id: string
           job_title: string | null
@@ -184,6 +185,7 @@ export type Database = {
           current_salary?: number | null
           employee_id?: string | null
           employee_name: string
+          employment_condition?: string | null
           hire_date?: string | null
           id?: string
           job_title?: string | null
@@ -201,6 +203,7 @@ export type Database = {
           current_salary?: number | null
           employee_id?: string | null
           employee_name?: string
+          employment_condition?: string | null
           hire_date?: string | null
           id?: string
           job_title?: string | null
