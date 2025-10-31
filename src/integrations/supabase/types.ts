@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       fca_analyses: {
         Row: {
+          analysis_type: string | null
           approval_date: string | null
           approved: boolean | null
           compa_ratio_current: number | null
@@ -44,6 +45,7 @@ export type Database = {
           years_in_role: number | null
         }
         Insert: {
+          analysis_type?: string | null
           approval_date?: string | null
           approved?: boolean | null
           compa_ratio_current?: number | null
@@ -72,6 +74,7 @@ export type Database = {
           years_in_role?: number | null
         }
         Update: {
+          analysis_type?: string | null
           approval_date?: string | null
           approved?: boolean | null
           compa_ratio_current?: number | null

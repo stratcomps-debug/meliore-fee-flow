@@ -29,6 +29,7 @@ export const FCAAnalysisWorkflow = () => {
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [formData, setFormData] = useState({
+    analysis_type: "existing_staff_contract_renewal",
     proposed_salary: "",
     budget_amount: "",
     contract_type: "employee",
@@ -43,6 +44,7 @@ export const FCAAnalysisWorkflow = () => {
     merit_increase: 0,
     rationale: "",
     recommendation: "",
+    external_candidate_level: "", // For external candidates: entry, experienced, specialized
   });
   
   const calculateYearsWithOrganisation = (hireDate: string | null): string => {
@@ -89,7 +91,21 @@ export const FCAAnalysisWorkflow = () => {
     }
   };
 
-  const fetchMacroeconomicData = async (currency: string, country: string, contractType: string) => {
+  const fetchMacroeconomicData = async (currency: string, country: string, contractType: string, analysisType: string) => {
+    // Skip macroeconomic data for external candidates
+    if (analysisType === 'external_candidate_initial') {
+      setFormData((prev) => ({
+        ...prev,
+        inflation_rate: "N/A",
+        fx_rate_current: "N/A",
+        fx_rate_previous: "N/A",
+        fx_change_percent: "N/A",
+        macroeconomic_effect: "N/A",
+        proposed_adjustment: "0",
+      }));
+      return;
+    }
+
     setFetchingMacroData(true);
     try {
       // Call edge function to fetch data (bypasses CORS)
@@ -193,7 +209,7 @@ export const FCAAnalysisWorkflow = () => {
       }));
 
       // Fetch macroeconomic data
-      await fetchMacroeconomicData(employee.currency, employee.country, contractType);
+      await fetchMacroeconomicData(employee.currency, employee.country, contractType, formData.analysis_type);
     }
   };
 
@@ -280,6 +296,7 @@ export const FCAAnalysisWorkflow = () => {
           proposed_salary: parseFloat(formData.proposed_salary),
           currency: selectedEmployee.currency,
           contract_type: formData.contract_type,
+          analysis_type: formData.analysis_type,
           kf_midpoint: isWTW ? null : midpoint,
           wtw_midpoint: isWTW ? midpoint : null,
           compa_ratio_current: compaRatioCurrent,
@@ -325,9 +342,38 @@ export const FCAAnalysisWorkflow = () => {
       <Card>
         <CardHeader>
           <CardTitle>Create FCA Analysis</CardTitle>
-          <CardDescription>Select an employee and complete the fee analysis</CardDescription>
+          <CardDescription>Select analysis type and employee to complete the fee analysis</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Analysis Type</Label>
+            <Select 
+              value={formData.analysis_type}
+              onValueChange={(value) => {
+                setFormData({ ...formData, analysis_type: value });
+                // Re-fetch macro data if employee is selected
+                if (selectedEmployee) {
+                  fetchMacroeconomicData(
+                    selectedEmployee.currency, 
+                    selectedEmployee.country, 
+                    formData.contract_type,
+                    value
+                  );
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="external_candidate_initial">External Candidate - Initial Proposition</SelectItem>
+                <SelectItem value="existing_staff_contract_renewal">Existing Staff - Contract Renewal</SelectItem>
+                <SelectItem value="existing_staff_internal_move">Existing Staff - Internal Move</SelectItem>
+                <SelectItem value="existing_staff_promotion_pathway">Existing Staff - Promotion Pathway</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label>Select Employee</Label>
             <Select onValueChange={handleEmployeeSelect}>
@@ -492,16 +538,68 @@ export const FCAAnalysisWorkflow = () => {
                 </div>
               </div>
 
+              {formData.analysis_type === 'external_candidate_initial' && (
+                <div className="space-y-2">
+                  <Label>Candidate Level (Total Rewards Policy)</Label>
+                  <Select
+                    value={formData.external_candidate_level}
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, external_candidate_level: value });
+                      // Auto-set merit increase based on candidate level for external candidates
+                      let targetCompaRatio = 0;
+                      if (value === 'entry') targetCompaRatio = 90;
+                      else if (value === 'experienced') targetCompaRatio = 95;
+                      else if (value === 'specialized') targetCompaRatio = 105;
+                      
+                      // Calculate what percentage increase is needed to reach target CR
+                      if (paybandInfo && selectedEmployee && targetCompaRatio > 0) {
+                        const midpoint = paybandInfo.kf_midpoint || paybandInfo.wtw_midpoint || 0;
+                        const targetSalary = midpoint * (targetCompaRatio / 100);
+                        const increaseNeeded = ((targetSalary - selectedEmployee.current_salary) / selectedEmployee.current_salary) * 100;
+                        setFormData(prev => ({ ...prev, merit_increase: Math.max(0, increaseNeeded) }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select candidate level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="entry">
+                        Entry Level (90% CR) - Fully functional, requires hand-holding
+                      </SelectItem>
+                      <SelectItem value="experienced">
+                        Experienced (95% CR) - More than requirements, immediate contribution
+                      </SelectItem>
+                      <SelectItem value="specialized">
+                        Specialized Role (105% CR) - Competitive labor market positioning
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.external_candidate_level === 'entry' && 
+                      "Entry level: Meets job requirements but will require time to understand/contribute"}
+                    {formData.external_candidate_level === 'experienced' && 
+                      "Experienced: Brings additional breadth/depth of expertise, starts at middle of scale"}
+                    {formData.external_candidate_level === 'specialized' && 
+                      "Specialized: Higher evaluation needed to remain competitive in relevant labor market"}
+                  </p>
+                </div>
+              )}
+
               <div className="p-4 bg-muted rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">
-                    {formData.contract_type === "consultancy" ? "SOW Assessment" : "Performance Assessment"}
+                    {formData.analysis_type === 'external_candidate_initial' 
+                      ? "Positioning Assessment"
+                      : formData.contract_type === "consultancy" ? "SOW Assessment" : "Performance Assessment"}
                   </h4>
                   <div className="flex items-center gap-2">
                     <Label className="text-xs whitespace-nowrap">
-                      {formData.contract_type === "consultancy" 
-                        ? "SOW Assessment Related Increase (%)" 
-                        : "Performance Related Increase (%)"}
+                      {formData.analysis_type === 'external_candidate_initial'
+                        ? "Target CR Adjustment (%)"
+                        : formData.contract_type === "consultancy" 
+                          ? "SOW Assessment Related Increase (%)" 
+                          : "Performance Related Increase (%)"}
                     </Label>
                     <Input
                       type="text"
@@ -513,72 +611,95 @@ export const FCAAnalysisWorkflow = () => {
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label>
-                    {formData.contract_type === "consultancy" ? "SOW Rating" : "Performance Rating"}
-                  </Label>
-                  <Select
-                    value={formData.performance_rating || ""}
-                    onValueChange={(value) => {
-                      // Calculate merit increase when performance rating changes
-                      // Use the compa_ratio from HumanForce data if available, otherwise calculate it
-                      let currentCompaRatio = 0;
-                      if (selectedEmployee.compa_ratio) {
-                        currentCompaRatio = selectedEmployee.compa_ratio;
-                      } else {
-                        const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
-                        currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
-                      }
-                      const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
-                      
-                      setFormData({ 
-                        ...formData, 
-                        performance_rating: value,
-                        merit_increase: meritIncrease
-                      });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select rating" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BE">BE - Below Expectations</SelectItem>
-                      <SelectItem value="OI">OI - Opportunity for Improvement</SelectItem>
-                      <SelectItem value="ME">ME - Meets Expectations</SelectItem>
-                      <SelectItem value="EE">EE - Exceeds Expectations</SelectItem>
-                      <SelectItem value="O">O - Outstanding</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {formData.analysis_type !== 'external_candidate_initial' && (
+                  <div className="space-y-2">
+                    <Label>
+                      {formData.contract_type === "consultancy" ? "SOW Rating" : "Performance Rating"}
+                    </Label>
+                    <Select
+                      value={formData.performance_rating || ""}
+                      onValueChange={(value) => {
+                        // Calculate merit increase when performance rating changes
+                        // Use the compa_ratio from HumanForce data if available, otherwise calculate it
+                        let currentCompaRatio = 0;
+                        if (selectedEmployee.compa_ratio) {
+                          currentCompaRatio = selectedEmployee.compa_ratio;
+                        } else {
+                          const midpoint = paybandInfo?.kf_midpoint || paybandInfo?.wtw_midpoint || 0;
+                          currentCompaRatio = midpoint > 0 ? selectedEmployee.current_salary / midpoint : 0;
+                        }
+                        const meritIncrease = calculateMeritIncrease(value, currentCompaRatio);
+                        
+                        setFormData({ 
+                          ...formData, 
+                          performance_rating: value,
+                          merit_increase: meritIncrease
+                        });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select rating" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="BE">BE - Below Expectations</SelectItem>
+                        <SelectItem value="OI">OI - Opportunity for Improvement</SelectItem>
+                        <SelectItem value="ME">ME - Meets Expectations</SelectItem>
+                        <SelectItem value="EE">EE - Exceeds Expectations</SelectItem>
+                        <SelectItem value="O">O - Outstanding</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                {formData.analysis_type === 'external_candidate_initial' && formData.external_candidate_level && (
+                  <p className="text-sm text-muted-foreground">
+                    {formData.external_candidate_level === 'entry' && 
+                      "Positioning at 90% compa-ratio per Total Rewards Policy for entry-level candidates"}
+                    {formData.external_candidate_level === 'experienced' && 
+                      "Positioning at 95% compa-ratio per Total Rewards Policy for experienced candidates"}
+                    {formData.external_candidate_level === 'specialized' && 
+                      "Positioning at 105% compa-ratio per Total Rewards Policy for specialized roles"}
+                  </p>
+                )}
               </div>
 
               <div className="p-4 bg-muted rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h4 className="font-semibold">Macroeconomic Analysis</h4>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-4 w-4 text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p>Data is auto-fetched from World Bank API and may be historical. Please verify current values using the links provided.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    {formData.analysis_type !== 'external_candidate_initial' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Data is auto-fetched from World Bank API and may be historical. Please verify current values using the links provided.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                     {fetchingMacroData && <span className="text-sm text-muted-foreground">Fetching data...</span>}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs whitespace-nowrap">Proposed Adjustment (50% of Total)</Label>
-                    <Input
-                      type="text"
-                      step="0.01"
-                      value={formData.proposed_adjustment ? parseFloat(formData.proposed_adjustment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
-                      disabled
-                      className="bg-muted font-semibold w-24"
-                    />
-                  </div>
+                  {formData.analysis_type !== 'external_candidate_initial' && (
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs whitespace-nowrap">Proposed Adjustment (50% of Total)</Label>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        value={formData.proposed_adjustment ? parseFloat(formData.proposed_adjustment).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
+                        disabled
+                        className="bg-muted font-semibold w-24"
+                      />
+                    </div>
+                  )}
                 </div>
+                
+                {formData.analysis_type === 'external_candidate_initial' ? (
+                  <p className="text-sm text-muted-foreground italic">
+                    Not applicable: External candidate positioning based on Total Rewards Policy
+                  </p>
+                ) : (
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -702,6 +823,7 @@ export const FCAAnalysisWorkflow = () => {
                     />
                   </div>
                 </div>
+                )}
               </div>
 
               <div className="space-y-2">

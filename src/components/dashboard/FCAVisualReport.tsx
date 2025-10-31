@@ -609,30 +609,37 @@ export const FCAVisualReport = () => {
             children: [new TextRun({ text: "Macroeconomic Analysis", bold: true, size: 28 })],
             spacing: { before: 200, after: 100 },
           }),
-          new Paragraph({
-            text: `According to Trading Economics, The annual inflation rate in ${selectedAnalysis.country} is ${selectedAnalysis.inflation_rate || "N/A"}% in September ${currentYear}.`,
-            spacing: { after: 100 },
-          }),
-          ...(fxCurrent && fxPrevious && fxChange && parseFloat(fxChange) !== 0 ? [
+          ...(selectedAnalysis.analysis_type === 'external_candidate_initial' ? [
             new Paragraph({
-              text: `On average during ${currentYear}, 1 USD allowed our staff members to obtain ${fxCurrent} ${selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.`,
-              spacing: { after: 100 },
-            }),
-            new Paragraph({
-              text: `On average during ${previousYear}, 1 USD allowed our staff members to obtain ${fxPrevious} ${selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.`,
-              spacing: { after: 100 },
-            }),
-            new Paragraph({
-              text: `In conclusion: on average, 1 USD allowed our staff members to obtain ${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "more" : "less"} than the previous year.`,
-              spacing: { after: 100 },
-            })
-          ] : []),
-          ...(macroEffect ? [
-            new Paragraph({
-              text: `The effect of Macroeconomic elements on the purchasing power of staff members in ${selectedAnalysis.country} is a ${parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of ${Math.ceil(Math.abs(parseFloat(macroEffect)))}%.`,
+              children: [new TextRun({ text: "Not applicable: External candidate positioning based on Total Rewards Policy", italics: true })],
               spacing: { after: 200 },
             })
-          ] : []),
+          ] : [
+            new Paragraph({
+              text: `According to Trading Economics, The annual inflation rate in ${selectedAnalysis.country} is ${selectedAnalysis.inflation_rate || "N/A"}% in September ${currentYear}.`,
+              spacing: { after: 100 },
+            }),
+            ...(fxCurrent && fxPrevious && fxChange && parseFloat(fxChange) !== 0 ? [
+              new Paragraph({
+                text: `On average during ${currentYear}, 1 USD allowed our staff members to obtain ${fxCurrent} ${selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.`,
+                spacing: { after: 100 },
+              }),
+              new Paragraph({
+                text: `On average during ${previousYear}, 1 USD allowed our staff members to obtain ${fxPrevious} ${selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.`,
+                spacing: { after: 100 },
+              }),
+              new Paragraph({
+                text: `In conclusion: on average, 1 USD allowed our staff members to obtain ${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "more" : "less"} than the previous year.`,
+                spacing: { after: 100 },
+              })
+            ] : []),
+            ...(macroEffect ? [
+              new Paragraph({
+                text: `The effect of Macroeconomic elements on the purchasing power of staff members in ${selectedAnalysis.country} is a ${parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of ${Math.ceil(Math.abs(parseFloat(macroEffect)))}%.`,
+                spacing: { after: 200 },
+              })
+            ] : [])
+          ]),
 
           // Recommendation
           ...(selectedAnalysis.recommendation ? [
@@ -730,16 +737,20 @@ export const FCAVisualReport = () => {
         { Section: "", Details: "" },
         
         { Section: "MACROECONOMIC ANALYSIS", Details: "" },
-        { Section: "Inflation Rate", Details: `${selectedAnalysis.inflation_rate || "N/A"}%` },
-        ...(selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious ? [
-          { Section: `FX Rate ${currentYear}`, Details: `${fxCurrent} ${selectedAnalysis.currency}` },
-          { Section: `FX Rate ${previousYear}`, Details: `${fxPrevious} ${selectedAnalysis.currency}` },
-          { Section: "FX Change", Details: `${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}` },
-        ] : []),
-        ...(macroEffect && proposedAdj ? [
-          { Section: "Total Macro Effect", Details: `${Math.ceil(parseFloat(macroEffect))}%` },
-          { Section: "Proposed Adjustment (50%)", Details: `${Math.ceil(parseFloat(proposedAdj))}%` },
-        ] : []),
+        ...(selectedAnalysis.analysis_type === 'external_candidate_initial' ? [
+          { Section: "Analysis", Details: "Not applicable: External candidate positioning based on Total Rewards Policy" }
+        ] : [
+          { Section: "Inflation Rate", Details: `${selectedAnalysis.inflation_rate || "N/A"}%` },
+          ...(selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious ? [
+            { Section: `FX Rate ${currentYear}`, Details: `${fxCurrent} ${selectedAnalysis.currency}` },
+            { Section: `FX Rate ${previousYear}`, Details: `${fxPrevious} ${selectedAnalysis.currency}` },
+            { Section: "FX Change", Details: `${Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% ${parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}` },
+          ] : []),
+          ...(macroEffect && proposedAdj ? [
+            { Section: "Total Macro Effect", Details: `${Math.ceil(parseFloat(macroEffect))}%` },
+            { Section: "Proposed Adjustment (50%)", Details: `${Math.ceil(parseFloat(proposedAdj))}%` },
+          ] : [])
+        ]),
         { Section: "", Details: "" },
         
         ...(selectedAnalysis.recommendation ? [
@@ -1018,49 +1029,59 @@ export const FCAVisualReport = () => {
               <TableRow>
                 <TableCell className="font-medium">
                   <div>Macroeconomic Analysis</div>
-                  <div className="text-xs text-muted-foreground font-normal mt-1">Inflation and currency fluctuation impact on purchasing power</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">
+                    {selectedAnalysis.analysis_type === 'external_candidate_initial' 
+                      ? "Not applicable for external candidates" 
+                      : "Inflation and currency fluctuation impact on purchasing power"}
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell className="space-y-2">
-                  {(() => {
-                    const docContent = feeApprovalData?.document_content;
-                    const fxCurrent = docContent?.formData?.fx_rate_current;
-                    const fxPrevious = docContent?.formData?.fx_rate_previous;
-                    const fxChange = docContent?.formData?.fx_change_percent;
-                    const inflationRate = selectedAnalysis.inflation_rate;
-                    const macroEffect = docContent?.formData?.macroeconomic_effect;
-                    const proposedAdj = docContent?.formData?.proposed_adjustment;
-                    const currentYear = new Date().getFullYear();
-                    const previousYear = currentYear - 1;
-                    
-                    return (
-                      <>
-                        <p>
-                          According to Trading Economics, The annual inflation rate in {selectedAnalysis.country} is {inflationRate || "N/A"}% in September {currentYear}.
-                        </p>
-                        {fxCurrent && fxPrevious && fxChange && parseFloat(fxChange) !== 0 && (
-                          <>
-                            <p>
-                              On average during {currentYear}, 1 USD allowed our staff members to obtain {fxCurrent} {selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.
-                            </p>
-                            <p>
-                              On average during {previousYear}, 1 USD allowed our staff members to obtain {fxPrevious} {selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.
-                            </p>
-                            <p>
-                              In conclusion: on average, 1 USD allowed our staff members to obtain {Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "more" : "less"} than the previous year.
-                            </p>
-                          </>
-                        )}
-                        {macroEffect && (
+                  {selectedAnalysis.analysis_type === 'external_candidate_initial' ? (
+                    <p className="text-sm text-muted-foreground italic">
+                      Not applicable: External candidate positioning based on Total Rewards Policy
+                    </p>
+                  ) : (
+                    (() => {
+                      const docContent = feeApprovalData?.document_content;
+                      const fxCurrent = docContent?.formData?.fx_rate_current;
+                      const fxPrevious = docContent?.formData?.fx_rate_previous;
+                      const fxChange = docContent?.formData?.fx_change_percent;
+                      const inflationRate = selectedAnalysis.inflation_rate;
+                      const macroEffect = docContent?.formData?.macroeconomic_effect;
+                      const proposedAdj = docContent?.formData?.proposed_adjustment;
+                      const currentYear = new Date().getFullYear();
+                      const previousYear = currentYear - 1;
+                      
+                      return (
+                        <>
                           <p>
-                            The effect of Macroeconomic elements on the purchasing power of staff members in {selectedAnalysis.country} is a {parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of {Math.ceil(Math.abs(parseFloat(macroEffect)))}%.
+                            According to Trading Economics, The annual inflation rate in {selectedAnalysis.country} is {inflationRate || "N/A"}% in September {currentYear}.
                           </p>
-                        )}
-                      </>
-                    );
-                  })()}
+                          {fxCurrent && fxPrevious && fxChange && parseFloat(fxChange) !== 0 && (
+                            <>
+                              <p>
+                                On average during {currentYear}, 1 USD allowed our staff members to obtain {fxCurrent} {selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.
+                              </p>
+                              <p>
+                                On average during {previousYear}, 1 USD allowed our staff members to obtain {fxPrevious} {selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.
+                              </p>
+                              <p>
+                                In conclusion: on average, 1 USD allowed our staff members to obtain {Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "more" : "less"} than the previous year.
+                              </p>
+                            </>
+                          )}
+                          {macroEffect && (
+                            <p>
+                              The effect of Macroeconomic elements on the purchasing power of staff members in {selectedAnalysis.country} is a {parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of {Math.ceil(Math.abs(parseFloat(macroEffect)))}%.
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()
+                  )}
                 </TableCell>
               </TableRow>
 
