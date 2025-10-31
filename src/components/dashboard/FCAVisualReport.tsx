@@ -544,7 +544,7 @@ export const FCAVisualReport = () => {
             <TableBody>
               <TableRow>
                 <TableCell className="font-medium">
-                  What is the approved budgeted amount confirmed by Finance and P&C
+                  Budgeted Amount
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -552,80 +552,66 @@ export const FCAVisualReport = () => {
                 <TableCell>
                   Budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role of {feeApprovalData?.document_content?.budget_amount ? 
                     `${Math.ceil(parseFloat(feeApprovalData.document_content.budget_amount)).toLocaleString()} ${selectedAnalysis.currency}` : 
-                    `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`} per year.
-                  {selectedAnalysis.contract_type === "consultancy" && (
-                    <span className="text-muted-foreground text-sm block mt-1">
-                      (6% increase from current fee)
-                    </span>
-                  )}
+                    `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}`} per year.{selectedAnalysis.contract_type === "consultancy" ? " (6% increase from current fee)" : ""}
                 </TableCell>
               </TableRow>
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Link of proposed offer to our compensation & comparatio philosophy, principles, methodology, circumstances etc
+                  Compensation Philosophy & Proposed Salary
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
-                <TableCell>
-                  "Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. 
-                  The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(midpoint).toLocaleString()} {selectedAnalysis.currency} 
-                  (which is also 100% Compa-ratio).
-                  
+                <TableCell className="whitespace-pre-line">
+                  Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(midpoint).toLocaleString()} {selectedAnalysis.currency} (which is also 100% Compa-ratio).
+                  {"\n\n"}
                   {selectedAnalysis.employee_name} has been with the organisation for {yearsWithOrg}, {pronoun} joined in {hireDateFormatted}.
-                  
-                  {selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, 
-                  P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. 
-                  This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
-                  
-                  {selectedAnalysis.rationale ? `\n\nRationale: ${selectedAnalysis.rationale}` : ''}"
+                  {"\n\n"}
+                  {selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
+                  {selectedAnalysis.rationale && `\n\nRationale: ${selectedAnalysis.rationale}`}
                 </TableCell>
               </TableRow>
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Our cohort reference group equity distance standard is 10% ie the difference between the highest and lowest member of a cohort/referent group is 10% as a rule; with flexibility up to 15% depending on dynamics of cohort and JEDI
+                  Equity Distance Analysis
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  "We currently have {cohortData?.length || 0} staff members on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country}.
-                  The equity distance for the {cohortData?.length || 0} staff members is {Math.ceil(equityDistance.current)}%.
-                  If we offer our proposition, the new equity distance is {Math.ceil(equityDistance.proposed)}%."
+                  We currently have {cohortData?.length || 0} staff members on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country}. The equity distance for the {cohortData?.length || 0} staff members is {Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance is {Math.ceil(equityDistance.proposed)}%.
                 </TableCell>
               </TableRow>
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Analysis of referent groups/cohorts in the level under review
+                  Cohort Reference Group
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  "From the staff members on Meliore grading Level {selectedAnalysis.level} in {selectedAnalysis.country}, 
-                  {cohortData?.length || 0} staff members are currently in this cohort."
+                  From the staff members on Meliore grading Level {selectedAnalysis.level} in {selectedAnalysis.country}, {cohortData?.length || 0} staff members are currently in this cohort.
                 </TableCell>
               </TableRow>
 
               <TableRow>
                 <TableCell className="font-medium">
-                  What is the average CR of the cohort/reference group under review
+                  Average Compa-Ratio
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  The average Compa-Ratio for all staff on a Meliore Grading level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(avgCompaRatio.current)}%. 
-                  The average Compa-Ratio becomes {Math.ceil(avgCompaRatio.proposed)}% with this proposition.
+                  The average Compa-Ratio for all staff on a Meliore Grading level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(avgCompaRatio.current)}%. The average Compa-Ratio becomes {Math.ceil(avgCompaRatio.proposed)}% with this proposition.
                 </TableCell>
               </TableRow>
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Any gender gaps
+                  Gender Gap Analysis
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -637,12 +623,12 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Macroeconomic analysis
+                  Macroeconomic Analysis
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
-                <TableCell>
+                <TableCell className="space-y-2">
                   {(() => {
                     const docContent = feeApprovalData?.document_content;
                     const fxCurrent = docContent?.formData?.fx_rate_current;
@@ -655,35 +641,29 @@ export const FCAVisualReport = () => {
                     const previousYear = currentYear - 1;
                     
                     return (
-                      <div className="space-y-2">
+                      <>
                         <p>
-                          "According to the latest Trading Economics data, the 12 months Inflation rate in{" "}
-                          {selectedAnalysis.country} is {inflationRate || "N/A"}% in {currentYear}.
+                          According to the latest Trading Economics data, the 12 months Inflation rate in {selectedAnalysis.country} is {inflationRate || "N/A"}% in {currentYear}.
                         </p>
                         {selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious && (
                           <>
                             <p>
-                              On average in {currentYear}, 1 USD allowed our staff members to obtain{" "}
-                              {fxCurrent} {selectedAnalysis.currency}.
+                              On average in {currentYear}, 1 USD allowed our staff members to obtain {fxCurrent} {selectedAnalysis.currency}.
                             </p>
                             <p>
-                              On average in {previousYear}, 1 USD allowed our staff members to obtain{" "}
-                              {fxPrevious} {selectedAnalysis.currency}.
+                              On average in {previousYear}, 1 USD allowed our staff members to obtain {fxPrevious} {selectedAnalysis.currency}.
                             </p>
-                             <p>
-                               In conclusion: on average in {currentYear}, 1 USD allowed our staff members to obtain{" "}
-                               {parseFloat(fxChange || "0") > 0 ? "more" : "less"} {selectedAnalysis.currency} than in {previousYear}{" "}
-                               ({Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).
-                             </p>
+                            <p>
+                              In conclusion: on average in {currentYear}, 1 USD allowed our staff members to obtain {parseFloat(fxChange || "0") > 0 ? "more" : "less"} {selectedAnalysis.currency} than in {previousYear} ({Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).
+                            </p>
                           </>
                         )}
-                         {macroEffect && proposedAdj && (
-                           <p className="font-semibold">
-                             The total macroeconomic effect (Inflation + FX fluctuation) is {Math.ceil(parseFloat(macroEffect))}%.
-                             Meliore proposes to cover 50% of this effect, resulting in a {Math.ceil(parseFloat(proposedAdj))}% salary adjustment."
-                           </p>
-                         )}
-                      </div>
+                        {macroEffect && proposedAdj && (
+                          <p className="font-semibold">
+                            The total macroeconomic effect (Inflation + FX fluctuation) is {Math.ceil(parseFloat(macroEffect))}%. Meliore proposes to cover 50% of this effect, resulting in a {Math.ceil(parseFloat(proposedAdj))}% salary adjustment.
+                          </p>
+                        )}
+                      </>
                     );
                   })()}
                 </TableCell>
