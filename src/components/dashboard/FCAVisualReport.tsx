@@ -779,7 +779,8 @@ export const FCAVisualReport = () => {
             <TableBody>
               <TableRow>
                 <TableCell className="font-medium">
-                  Budgeted Amount
+                  <div>Budgeted Amount</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">Approved budgeted amount confirmed by Finance</div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -793,7 +794,8 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Compensation Philosophy & Proposed Salary
+                  <div>Compensation Philosophy & Proposed Salary</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">How our proposed offer aligns with compensation philosophy, principles, methodology and circumstances</div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -823,7 +825,8 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Equity Distance Analysis
+                  <div>Equity Distance Analysis</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">Standard equity distance is 10% (flexibility up to 15% based on cohort dynamics and JEDI)</div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -840,7 +843,8 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Cohort Reference Group
+                  <div>Cohort Reference Group</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">Analysis of staff reporting to the same supervisor at this level</div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -864,7 +868,8 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Average Compa-Ratio
+                  <div>Average Compa-Ratio</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">Average CR of all staff at this level in this location</div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -876,7 +881,8 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Gender Gap Analysis
+                  <div>Gender Gap Analysis</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">Gender pay equity analysis across the cohort and peer groups</div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -888,7 +894,8 @@ export const FCAVisualReport = () => {
 
               <TableRow>
                 <TableCell className="font-medium">
-                  Macroeconomic Analysis
+                  <div>Macroeconomic Analysis</div>
+                  <div className="text-xs text-muted-foreground font-normal mt-1">Inflation and currency fluctuation impact on purchasing power</div>
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
@@ -937,7 +944,8 @@ export const FCAVisualReport = () => {
               {selectedAnalysis.recommendation && (
                 <TableRow>
                   <TableCell className="font-medium">
-                    Recommendation
+                    <div>Recommendation</div>
+                    <div className="text-xs text-muted-foreground font-normal mt-1">Initial offer to begin negotiations and alignment with Line Manager</div>
                   </TableCell>
                   <TableCell className="text-center">
                     <Check className="h-4 w-4 mx-auto" />
