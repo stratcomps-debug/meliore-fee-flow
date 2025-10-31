@@ -62,21 +62,40 @@ export const FCAVisualReport = () => {
   };
 
   const calculateEquityDistance = () => {
-    if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0 };
+    if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0, count: 0 };
     
-    const salaries = cohortData.map((m: any) => m.current_salary || 0);
-    const maxSalary = Math.max(...salaries);
-    const minSalary = Math.min(...salaries);
+    // Get all staff members in the cohort excluding the current analysis subject
+    const otherStaffMembers = cohortData.filter((m: any) => 
+      m.employee_name !== selectedAnalysis?.employee_name
+    );
     
-    const currentDistance = maxSalary > 0 ? ((maxSalary - minSalary) / maxSalary) * 100 : 0;
+    // X = number of other staff members (or total if it's a candidate/new hire)
+    const staffCount = otherStaffMembers.length > 0 ? otherStaffMembers.length : cohortData.length;
     
-    // Calculate with proposed salary
-    const proposedSalaries = [...salaries, selectedAnalysis?.proposed_salary || 0];
-    const maxProposed = Math.max(...proposedSalaries);
-    const minProposed = Math.min(...proposedSalaries);
-    const proposedDistance = maxProposed > 0 ? ((maxProposed - minProposed) / maxProposed) * 100 : 0;
+    // Calculate current equity distance (A) - based on compa-ratios
+    const compaRatios = otherStaffMembers.length > 0 
+      ? otherStaffMembers.map((m: any) => m.compa_ratio || 0)
+      : cohortData.map((m: any) => m.compa_ratio || 0);
     
-    return { current: currentDistance, proposed: proposedDistance };
+    const maxCompaRatio = Math.max(...compaRatios);
+    const minCompaRatio = Math.min(...compaRatios);
+    
+    // A = difference between highest and lowest compa-ratio
+    const currentDistance = maxCompaRatio - minCompaRatio;
+    
+    // Calculate proposed equity distance (Y) - including the proposed compa-ratio
+    const proposedCompaRatios = [...compaRatios, selectedAnalysis?.compa_ratio_proposed || 0];
+    const maxProposedCompa = Math.max(...proposedCompaRatios);
+    const minProposedCompa = Math.min(...proposedCompaRatios);
+    
+    // Y = difference taking into account the proposed compa-ratio
+    const proposedDistance = maxProposedCompa - minProposedCompa;
+    
+    return { 
+      current: currentDistance * 100, // Convert to percentage
+      proposed: proposedDistance * 100, // Convert to percentage
+      count: staffCount 
+    };
   };
 
   const calculateAverageCompaRatio = () => {
@@ -262,7 +281,7 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `We currently have ${cohortData?.length || 0} staff members on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${cohortData?.length || 0} staff members is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance is ${Math.ceil(equityDistance.proposed)}%.`,
+            text: `We currently have ${equityDistance.count} ${equityDistance.count === 1 ? 'other staff member' : 'other staff members'} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance will be ${Math.ceil(equityDistance.proposed)}%.`,
             spacing: { after: 200 },
           }),
 
