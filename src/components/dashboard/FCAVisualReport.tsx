@@ -171,9 +171,10 @@ export const FCAVisualReport = () => {
     
     const avgCurrent = cohortData.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / cohortData.length;
     
-    // Include proposed in calculation
-    const totalCompa = cohortData.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) + ((selectedAnalysis?.compa_ratio_proposed || 0) / 100);
-    const avgProposed = totalCompa / (cohortData.length + 1);
+    // Exclude current person from cohort, then add their proposed CR
+    const othersData = cohortData.filter((m: any) => m.employee_name !== selectedAnalysis?.employee_name);
+    const totalCompa = othersData.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) + ((selectedAnalysis?.compa_ratio_proposed || 0) / 100);
+    const avgProposed = totalCompa / (othersData.length + 1);
     
     return { current: avgCurrent * 100, proposed: avgProposed * 100 };
   };
