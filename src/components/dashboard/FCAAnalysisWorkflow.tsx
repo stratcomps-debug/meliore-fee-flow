@@ -53,7 +53,6 @@ export const FCAAnalysisWorkflow = () => {
     country: "",
     level: "",
     job_title: "",
-    current_salary: "",
     currency: "",
   });
   
@@ -119,7 +118,7 @@ export const FCAAnalysisWorkflow = () => {
     if (formData.analysis_type === 'external_candidate_initial') {
       return {
         ...externalCandidateData,
-        current_salary: parseFloat(externalCandidateData.current_salary) || 0,
+        current_salary: 0,
         compa_ratio: null,
         hire_date: null,
       };
@@ -498,16 +497,6 @@ export const FCAAnalysisWorkflow = () => {
                       onChange={(e) => setExternalCandidateData({ ...externalCandidateData, job_title: e.target.value })}
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Current Salary (if applicable)</Label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={externalCandidateData.current_salary}
-                      onChange={(e) => setExternalCandidateData({ ...externalCandidateData, current_salary: e.target.value })}
-                    />
-                  </div>
                 </div>
               </div>
             </>
@@ -609,13 +598,9 @@ export const FCAAnalysisWorkflow = () => {
                 <div className="space-y-2">
                   <Label>Current {formData.contract_type === "consultancy" ? "Fee" : "Salary"} {formData.analysis_type === 'external_candidate_initial' ? "(if known)" : ""}</Label>
                   <Input 
-                    value={getCurrentEmployeeData()?.current_salary?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || (formData.analysis_type === 'external_candidate_initial' ? "" : "N/A")} 
-                    disabled={formData.analysis_type !== 'external_candidate_initial'}
+                    value={getCurrentEmployeeData()?.current_salary?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "N/A"} 
+                    disabled
                     type="text"
-                    onChange={formData.analysis_type === 'external_candidate_initial' ? (e) => {
-                      const value = e.target.value.replace(/,/g, '');
-                      setExternalCandidateData({ ...externalCandidateData, current_salary: value });
-                    } : undefined}
                   />
                 </div>
                 <div className="space-y-2">
