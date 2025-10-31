@@ -210,19 +210,85 @@ export const FCAVisualReport = () => {
   };
 
   const getGenderGapAnalysis = () => {
-    if (!cohortData || cohortData.length === 0) return "No data available";
+    if (!cohortData || cohortData.length === 0 || !selectedAnalysis) return "No data available";
     
     const males = cohortData.filter((m: any) => m.raw_data?.Gender === "Male");
     const females = cohortData.filter((m: any) => m.raw_data?.Gender === "Female");
     
-    if (males.length === 0 || females.length === 0) return "Insufficient gender data for analysis";
+    if (males.length === 0 && females.length === 0) return "Insufficient gender data for analysis";
     
-    const avgMale = males.reduce((sum: number, m: any) => sum + (m.current_salary || 0), 0) / males.length;
-    const avgFemale = females.reduce((sum: number, m: any) => sum + (m.current_salary || 0), 0) / females.length;
+    const avgMaleCR = males.length > 0 
+      ? (males.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / males.length) * 100
+      : 0;
+    const avgFemaleCR = females.length > 0 
+      ? (females.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / females.length) * 100
+      : 0;
     
-    const gap = ((avgMale - avgFemale) / avgMale) * 100;
+    const payGap = Math.abs(avgFemaleCR - avgMaleCR);
+    const gapFavour = avgFemaleCR > avgMaleCR ? "female" : "male";
     
-    return `Gender pay gap: ${Math.ceil(gap)}% (${males.length} males, ${females.length} females)`;
+    let genderText = `We currently have ${females.length} female staff and ${males.length} male staff on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}.`;
+    
+    if (males.length > 0 && females.length > 0) {
+      genderText += ` The average Compa-ratio for female staff is ${Math.ceil(avgFemaleCR)}% and the average Compa-ratio for male staff is ${Math.ceil(avgMaleCR)}%. This means the pay gap is ${Math.ceil(payGap)}% in favour of ${gapFavour} staff on the level ${selectedAnalysis.level} in the ${selectedAnalysis.country}.`;
+    }
+    
+    // Check if there are peers identified
+    const peerGroup = calculatePeerGroupAnalysis();
+    if (peerGroup.peerCount > 0) {
+      // Get peers
+      const proposedCR = (selectedAnalysis.compa_ratio_proposed || 0) / 100;
+      const getBracket = (cr: number) => {
+        if (cr < 0.95) return 'below95';
+        if (cr >= 0.95 && cr < 1.05) return '95to105';
+        return 'above105';
+      };
+      const currentBracket = getBracket(proposedCR);
+      const peers = cohortData.filter((m: any) => {
+        if (m.employee_name === selectedAnalysis.employee_name) return false;
+        const peerCR = m.compa_ratio || 0;
+        return getBracket(peerCR) === currentBracket;
+      });
+      
+      const peerMales = peers.filter((m: any) => m.raw_data?.Gender === "Male");
+      const peerFemales = peers.filter((m: any) => m.raw_data?.Gender === "Female");
+      
+      if (peerMales.length > 0 && peerFemales.length > 0) {
+        const peerAvgMaleCR = (peerMales.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / peerMales.length) * 100;
+        const peerAvgFemaleCR = (peerFemales.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / peerFemales.length) * 100;
+        const peerPayGap = Math.abs(peerAvgFemaleCR - peerAvgMaleCR);
+        const peerGapFavour = peerAvgFemaleCR > peerAvgMaleCR ? "female" : "male";
+        
+        genderText += ` The ${peerGroup.peerCount} peers who have an average CR of ${Math.ceil(peerGroup.averageCR)}% have a gender pay gap of ${Math.ceil(peerPayGap)}% in favour of ${peerGapFavour} staff.`;
+        
+        // Calculate proposed gap with the new person
+        const proposedPeerMales = [...peerMales];
+        const proposedPeerFemales = [...peerFemales];
+        
+        // Add the current analysis to the appropriate gender group
+        const currentGender = cohortData.find((m: any) => m.employee_name === selectedAnalysis.employee_name)?.raw_data?.Gender;
+        if (currentGender === "Male") {
+          proposedPeerMales.push({ compa_ratio: proposedCR });
+        } else if (currentGender === "Female") {
+          proposedPeerFemales.push({ compa_ratio: proposedCR });
+        }
+        
+        if (proposedPeerMales.length > 0 && proposedPeerFemales.length > 0) {
+          const proposedAvgMaleCR = (proposedPeerMales.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / proposedPeerMales.length) * 100;
+          const proposedAvgFemaleCR = (proposedPeerFemales.reduce((sum: number, m: any) => sum + (m.compa_ratio || 0), 0) / proposedPeerFemales.length) * 100;
+          const proposedPayGap = Math.abs(proposedAvgFemaleCR - proposedAvgMaleCR);
+          
+          if (Math.abs(proposedPayGap - peerPayGap) < 1) {
+            genderText += " The gender pay gap remains the same with this offer.";
+          } else {
+            const proposedGapFavour = proposedAvgFemaleCR > proposedAvgMaleCR ? "female" : "male";
+            genderText += ` The pay gap becomes ${Math.ceil(proposedPayGap)}% in favour of ${proposedGapFavour} staff.`;
+          }
+        }
+      }
+    }
+    
+    return genderText;
   };
 
   const calculateYearsWithOrganisation = (hireDate: string | null): string => {
