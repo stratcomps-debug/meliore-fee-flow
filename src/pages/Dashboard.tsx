@@ -47,7 +47,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-foreground">Meliore Fee Flow</h1>
+          <h1 className="text-2xl font-bold text-foreground">Meliore Fee and Salary Flow</h1>
           <Button variant="outline" onClick={handleLogout}>
             Logout
           </Button>
