@@ -138,6 +138,40 @@ export const FCAVisualReport = () => {
     };
   };
 
+  const calculatePeerGroupAnalysis = () => {
+    if (!cohortData || cohortData.length === 0 || !selectedAnalysis) {
+      return { peerCount: 0, averageCR: 0 };
+    }
+
+    // Determine the bracket for the current analysis
+    const proposedCR = (selectedAnalysis.compa_ratio_proposed || 0) / 100;
+    
+    const getBracket = (cr: number) => {
+      if (cr < 0.95) return 'below95';
+      if (cr >= 0.95 && cr < 1.05) return '95to105';
+      return 'above105';
+    };
+
+    const currentBracket = getBracket(proposedCR);
+
+    // Filter peers in the same bracket (excluding current staff member)
+    const peers = cohortData.filter((m: any) => {
+      if (m.employee_name === selectedAnalysis.employee_name) return false;
+      const peerCR = m.compa_ratio || 0;
+      return getBracket(peerCR) === currentBracket;
+    });
+
+    // Calculate average CR of peers
+    const averageCR = peers.length > 0
+      ? peers.reduce((sum: number, peer: any) => sum + (peer.compa_ratio || 0), 0) / peers.length
+      : 0;
+
+    return {
+      peerCount: peers.length,
+      averageCR: averageCR * 100 // Convert to percentage
+    };
+  };
+
   const calculateAverageCompaRatio = () => {
     if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0 };
     
@@ -223,6 +257,7 @@ export const FCAVisualReport = () => {
     const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
     const dataYear = selectedAnalysis.kf_midpoint ? 2024 : 2025;
     const equityDistance = calculateEquityDistance();
+    const peerGroup = calculatePeerGroupAnalysis();
     const avgCompaRatio = calculateAverageCompaRatio();
     const currentYear = new Date().getFullYear();
     const previousYear = currentYear - 1;
@@ -322,6 +357,10 @@ export const FCAVisualReport = () => {
           }),
           new Paragraph({
             text: `We currently have ${equityDistance.count} ${equityDistance.contractType} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} including ${selectedAnalysis.employee_name}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance ${Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `will be ${Math.ceil(equityDistance.proposed)}%`}.`,
+            spacing: { after: 200 },
+          }),
+          new Paragraph({
+            text: `From these ${equityDistance.count} ${equityDistance.contractType} on the level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${peerGroup.peerCount} have been identified as peers because of the Seniority/CR level. These ${peerGroup.peerCount} peers have an average CR of ${Math.ceil(peerGroup.averageCR)}%.`,
             spacing: { after: 200 },
           }),
 
@@ -543,6 +582,7 @@ export const FCAVisualReport = () => {
   }
 
   const equityDistance = calculateEquityDistance();
+  const peerGroup = calculatePeerGroupAnalysis();
   const avgCompaRatio = calculateAverageCompaRatio();
   const midpoint = selectedAnalysis.kf_midpoint || selectedAnalysis.wtw_midpoint || 0;
   const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
@@ -679,6 +719,8 @@ export const FCAVisualReport = () => {
                 </TableCell>
                 <TableCell>
                   We currently have {equityDistance.count} {equityDistance.contractType} on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} including {selectedAnalysis.employee_name}. The equity distance for the {equityDistance.count} staff {equityDistance.count === 1 ? 'member' : 'members'} is {Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance {Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `is ${Math.ceil(equityDistance.proposed)}%`}.
+                  {"\n\n"}
+                  From these {equityDistance.count} {equityDistance.contractType} on the level {selectedAnalysis.level} in {selectedAnalysis.country}, {peerGroup.peerCount} have been identified as peers because of the Seniority/CR level. These {peerGroup.peerCount} peers have an average CR of {Math.ceil(peerGroup.averageCR)}%.
                 </TableCell>
               </TableRow>
 
