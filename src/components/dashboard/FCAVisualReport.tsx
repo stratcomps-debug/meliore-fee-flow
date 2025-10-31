@@ -434,9 +434,13 @@ export const FCAVisualReport = () => {
             const proposedCR = (selectedAnalysis.proposed_salary / midpoint) * 100;
             const currentCR = selectedAnalysis.compa_ratio_current;
             const totalIncrease = ((selectedAnalysis.proposed_salary - selectedAnalysis.current_salary) / selectedAnalysis.current_salary) * 100;
+            const macroEffect = feeApprovalData?.document_content?.formData?.macroeconomic_effect;
+            const macroEffectValue = macroEffect ? Math.abs(parseFloat(macroEffect)) : 0;
+            const macroContribution = macroEffectValue * 0.5;
+            const performanceContribution = totalIncrease - macroContribution;
+            const performanceRating = selectedAnalysis.performance_rating || feeApprovalData?.document_content?.formData?.performance_rating || "Meets Expectations";
             
             if (proposedCR > 120) {
-              // If current salary is already above 120%, keep it and pay difference as lump sum
               if (currentCR > 120) {
                 const lumpSum = selectedAnalysis.proposed_salary - selectedAnalysis.current_salary;
                 return [
@@ -445,12 +449,15 @@ export const FCAVisualReport = () => {
                     spacing: { after: 100 },
                   }),
                   new Paragraph({
-                    text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                    text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${totalIncrease.toFixed(2)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                    spacing: { after: 100 },
+                  }),
+                  new Paragraph({
+                    text: `This proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with ${performanceContribution.toFixed(2)}% increase`,
                     spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
                   }),
                 ];
               } else {
-                // Current is below 120%, so cap base at 120% and rest is lump sum
                 const baseSalaryAt120 = midpoint * 1.20;
                 const lumpSum = selectedAnalysis.proposed_salary - baseSalaryAt120;
                 return [
@@ -459,7 +466,11 @@ export const FCAVisualReport = () => {
                     spacing: { after: 100 },
                   }),
                   new Paragraph({
-                    text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                    text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${totalIncrease.toFixed(2)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                    spacing: { after: 100 },
+                  }),
+                  new Paragraph({
+                    text: `This proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with ${performanceContribution.toFixed(2)}% increase`,
                     spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
                   }),
                 ];
@@ -467,7 +478,11 @@ export const FCAVisualReport = () => {
             } else {
               return [
                 new Paragraph({
-                  text: `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`,
+                  text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                  spacing: { after: 100 },
+                }),
+                new Paragraph({
+                  text: `This proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with ${performanceContribution.toFixed(2)}% increase`,
                   spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
                 }),
               ];
