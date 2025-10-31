@@ -177,6 +177,9 @@ export const FCAVisualReport = () => {
     const hireDate = humanforceData?.hire_date ? new Date(humanforceData.hire_date) : null;
     const hireDateFormatted = hireDate ? hireDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "N/A";
     const yearsWithOrg = hireDate ? calculateYearsWithOrganisation(humanforceData.hire_date) : "N/A";
+    
+    // Extract first name
+    const firstName = selectedAnalysis.employee_name.split(' ')[0];
 
     const docContent = feeApprovalData?.document_content;
     const fxCurrent = docContent?.formData?.fx_rate_current;
@@ -230,7 +233,20 @@ export const FCAVisualReport = () => {
             spacing: { after: 100 },
           }),
           new Paragraph({
-            text: `${pronoun === "he" ? "He" : pronoun === "she" ? "She" : "They"} is a fully functional experienced staff - based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+            text: (() => {
+              const cr = selectedAnalysis.compa_ratio_current;
+              if (cr < 95) {
+                return `${firstName} is at Foundation Level - ${pronoun} comes into the role and will require handholding/guidance to start contributing. Meliore typically manages such skills around the 90%CR-95%CR and will as a rule start at the 90%CR with flexibility for adjustment depending on the quantum, breadth and depth of prior relevant experience of the holder.`;
+              } else if (cr >= 95 && cr < 105) {
+                return `${firstName} is at Advanced Level - ${pronoun} comes into the role and will not require any handholding and needs minimum guidance to start contributing. Meliore typically manages such skills around the 95%CR-105%CR.`;
+              } else {
+                return `${firstName} is at Authority Level - ${pronoun} comes into the role as a subject matter referent recognized in their field internally and externally and in relevant communities of practice and thought leaders. Meliore typically manages such skills around the 105%CR-120%CR.`;
+              }
+            })(),
+            spacing: { after: 100 },
+          }),
+          new Paragraph({
+            text: `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
             spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
           }),
           ...(selectedAnalysis.rationale ? [
@@ -481,6 +497,7 @@ export const FCAVisualReport = () => {
   const hireDate = employeeData?.hire_date ? new Date(employeeData.hire_date) : null;
   const hireDateFormatted = hireDate ? hireDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "N/A";
   const yearsWithOrg = hireDate ? calculateYearsWithOrganisation(employeeData.hire_date) : "N/A";
+  const firstName = selectedAnalysis.employee_name.split(' ')[0];
 
   return (
     <div className="space-y-6">
@@ -578,7 +595,18 @@ export const FCAVisualReport = () => {
                   {"\n\n"}
                   {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is {Math.ceil(selectedAnalysis.current_salary).toLocaleString()} {selectedAnalysis.currency}. {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is {Math.ceil(selectedAnalysis.compa_ratio_current)}% to the Level {selectedAnalysis.level} in {selectedAnalysis.country}.
                   {"\n\n"}
-                  {pronoun === "he" ? "He" : pronoun === "she" ? "She" : "They"} is a fully functional experienced staff - based on qualifications, skills and experience, P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
+                  {(() => {
+                    const cr = selectedAnalysis.compa_ratio_current;
+                    if (cr < 95) {
+                      return `${firstName} is at Foundation Level - ${pronoun} comes into the role and will require handholding/guidance to start contributing. Meliore typically manages such skills around the 90%CR-95%CR and will as a rule start at the 90%CR with flexibility for adjustment depending on the quantum, breadth and depth of prior relevant experience of the holder.`;
+                    } else if (cr >= 95 && cr < 105) {
+                      return `${firstName} is at Advanced Level - ${pronoun} comes into the role and will not require any handholding and needs minimum guidance to start contributing. Meliore typically manages such skills around the 95%CR-105%CR.`;
+                    } else {
+                      return `${firstName} is at Authority Level - ${pronoun} comes into the role as a subject matter referent recognized in their field internally and externally and in relevant communities of practice and thought leaders. Meliore typically manages such skills around the 105%CR-120%CR.`;
+                    }
+                  })()}
+                  {"\n\n"}
+                  Based on qualifications, skills and experience, P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
                   {selectedAnalysis.rationale && `\n\nRationale: ${selectedAnalysis.rationale}`}
                 </TableCell>
               </TableRow>
