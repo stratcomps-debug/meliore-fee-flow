@@ -361,7 +361,7 @@ export const FCAVisualReport = () => {
           }),
           new Paragraph({
             text: `From these ${equityDistance.count} ${equityDistance.contractType} on the level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${peerGroup.peerCount} have been identified as peers because of the Seniority/CR level. These ${peerGroup.peerCount} peers have an average CR of ${Math.ceil(peerGroup.averageCR)}%.`,
-            spacing: { after: 200 },
+            spacing: { before: 200, after: 200 },
           }),
 
           // Cohort Analysis
