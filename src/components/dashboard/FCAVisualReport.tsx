@@ -920,6 +920,14 @@ export const FCAVisualReport = () => {
                       return `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`;
                     }
                   })()}
+                  {"\n\n"}
+                  In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay 105,306 USD per year which equals to a Compa-ratio of 153% and have one time lump sum of 4,213 USD which is a 5% payment. This is within the budgeted fee for this role.
+                  {"\n\n"}
+                  This proposition is the result of:
+                  {"\n"}- 50% of Y% for macroeconomic changes = X%
+                  {"\n"}- LM's assessment of the SOW of "Meets Expectations" with of Z%= A% increase
+                  {"\n\n"}
+                  Explaining how we land on the total percentage increase or payment
                   {selectedAnalysis.rationale && `\n\nRationale: ${selectedAnalysis.rationale}`}
                 </TableCell>
               </TableRow>
