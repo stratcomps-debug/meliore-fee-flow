@@ -398,6 +398,20 @@ export const FCAAnalysisWorkflow = () => {
                     value={formData.proposed_salary}
                     onChange={(e) => setFormData({ ...formData, proposed_salary: e.target.value })}
                   />
+                  {selectedEmployee && (
+                    <p className="text-xs text-muted-foreground">
+                      Total % increase: {(
+                        (parseFloat(formData.merit_increase?.toString() || "0")) + 
+                        (parseFloat(formData.proposed_adjustment || "0"))
+                      ).toFixed(2)}%
+                      {" = "}
+                      {Math.ceil(
+                        selectedEmployee.current_salary * 
+                        (1 + ((parseFloat(formData.merit_increase?.toString() || "0")) + 
+                        (parseFloat(formData.proposed_adjustment || "0"))) / 100)
+                      ).toLocaleString()} {selectedEmployee.currency}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>
