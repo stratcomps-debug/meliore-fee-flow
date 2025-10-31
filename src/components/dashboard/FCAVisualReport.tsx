@@ -488,15 +488,24 @@ export const FCAVisualReport = () => {
                 ];
               }
             } else {
+              const increaseText = selectedAnalysis.analysis_type === 'external_candidate_initial' 
+                ? '' 
+                : totalIncrease > 0.01 
+                ? ` This is a ${totalIncrease.toFixed(2)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                : totalIncrease < -0.01
+                ? ` This is a ${Math.abs(totalIncrease).toFixed(2)}% decrease compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                : '';
               return [
                 new Paragraph({
-                  text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${proposedCR.toFixed(2)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+                  text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${proposedCR.toFixed(2)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.${increaseText}`,
                   spacing: { after: 100 },
                 }),
-                new Paragraph({
-                  text: `This proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with a compa-ratio of ${currentCR.toFixed(2)}% meaning a ${performanceIncrease.toFixed(2)}%`,
-                  spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
-                }),
+                ...(selectedAnalysis.analysis_type === 'external_candidate_initial' ? [] : [
+                  new Paragraph({
+                    text: `This proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with a compa-ratio of ${currentCR.toFixed(2)}% meaning a ${performanceIncrease.toFixed(2)}%`,
+                    spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
+                  }),
+                ]),
               ];
             }
           })(),
@@ -541,9 +550,16 @@ export const FCAVisualReport = () => {
                 ];
               }
             } else {
+              const increaseText = selectedAnalysis.analysis_type === 'external_candidate_initial' 
+                ? '' 
+                : totalIncrease > 0.01 
+                ? ` This is a ${totalIncrease.toFixed(2)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                : totalIncrease < -0.01
+                ? ` This is a ${Math.abs(totalIncrease).toFixed(2)}% decrease compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                : '';
               return [
                 new Paragraph({
-                  text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${totalIncrease.toFixed(2)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`,
+                  text: `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.${increaseText}`,
                   spacing: { after: 200 },
                 }),
               ];
