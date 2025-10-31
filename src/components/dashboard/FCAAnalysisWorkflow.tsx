@@ -140,15 +140,17 @@ export const FCAAnalysisWorkflow = () => {
         ? Math.ceil(employee.current_salary * 1.06).toString()
         : "";
 
-      // Fetch payband midpoint for this employee
-      const { data: paybandData } = await supabase
-        .from("payband_midpoints")
-        .select("*")
-        .eq("country", employee.country)
-        .eq("level", employee.level)
-        .order("effective_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Use midpoint from HumanForce data if available (more accurate)
+      const midpointFromData = employee.raw_data?.midpoint_of_band || employee.raw_data?.["Midpoint of band"];
+      
+      let paybandData = null;
+      if (midpointFromData) {
+        paybandData = {
+          kf_midpoint: parseFloat(midpointFromData),
+          wtw_midpoint: null,
+          currency: employee.currency,
+        };
+      }
 
       setPaybandInfo(paybandData);
       
@@ -156,8 +158,8 @@ export const FCAAnalysisWorkflow = () => {
       let currentCompaRatio = 0;
       if (employee.compa_ratio) {
         currentCompaRatio = employee.compa_ratio;
-      } else {
-        const midpoint = paybandData?.kf_midpoint || paybandData?.wtw_midpoint || 0;
+      } else if (paybandData) {
+        const midpoint = paybandData.kf_midpoint || paybandData.wtw_midpoint || 0;
         currentCompaRatio = midpoint > 0 ? employee.current_salary / midpoint : 0;
       }
       
@@ -245,16 +247,9 @@ export const FCAAnalysisWorkflow = () => {
 
     setLoading(true);
     try {
-      const { data: paybandData } = await supabase
-        .from("payband_midpoints")
-        .select("*")
-        .eq("country", selectedEmployee.country)
-        .eq("level", selectedEmployee.level)
-        .order("effective_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const midpoint = paybandData?.kf_midpoint || paybandData?.wtw_midpoint || 0;
+      // Use midpoint from HumanForce data
+      const midpointFromData = selectedEmployee.raw_data?.midpoint_of_band || selectedEmployee.raw_data?.["Midpoint of band"];
+      const midpoint = midpointFromData ? parseFloat(midpointFromData) : 0;
       const compaRatioCurrent = calculateCompaRatio(selectedEmployee.current_salary, midpoint);
       const compaRatioProposed = calculateCompaRatio(parseFloat(formData.proposed_salary), midpoint);
 
@@ -268,8 +263,8 @@ export const FCAAnalysisWorkflow = () => {
           proposed_salary: parseFloat(formData.proposed_salary),
           currency: selectedEmployee.currency,
           contract_type: formData.contract_type,
-          kf_midpoint: paybandData?.kf_midpoint,
-          wtw_midpoint: paybandData?.wtw_midpoint,
+          kf_midpoint: midpoint,
+          wtw_midpoint: null,
           compa_ratio_current: compaRatioCurrent,
           compa_ratio_proposed: compaRatioProposed,
           inflation_rate: parseFloat(formData.inflation_rate) || null,
