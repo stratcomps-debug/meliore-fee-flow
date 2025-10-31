@@ -117,6 +117,10 @@ export const FCAVisualReport = () => {
     const totalMonths = differenceInMonths(today, start);
     const months = totalMonths - (years * 12);
     
+    if (months === 0) {
+      return `${years} years`;
+    }
+    
     return `${years} years and ${months} months`;
   };
 
