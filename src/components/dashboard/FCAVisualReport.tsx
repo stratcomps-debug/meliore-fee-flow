@@ -102,7 +102,8 @@ export const FCAVisualReport = () => {
     // Calculate proposed equity distance (Y) - replace current staff member's CR with proposed CR
     // Build the new set of compa-ratios: all other staff + the proposed CR for current staff
     const proposedCompaRatios = otherStaffMembers.map((m: any) => m.compa_ratio || 0);
-    const proposedCR = selectedAnalysis?.compa_ratio_proposed || 0;
+    // Convert proposed CR from percentage to decimal (stored as 100.65 instead of 1.0065)
+    const proposedCR = (selectedAnalysis?.compa_ratio_proposed || 0) / 100;
     
     console.log('Equity Distance Debug:', {
       staffCount,
