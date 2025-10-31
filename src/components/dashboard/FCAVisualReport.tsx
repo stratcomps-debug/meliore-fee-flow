@@ -6,7 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, FileDown } from "lucide-react";
+import { Check, FileDown, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Document, Packer, Paragraph, TextRun, Table as DocxTable, TableRow as DocxTableRow, TableCell as DocxTableCell, WidthType, AlignmentType, BorderStyle } from "docx";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
@@ -117,6 +118,32 @@ export const FCAVisualReport = () => {
     const months = totalMonths - (years * 12);
     
     return `${years} years and ${months} months`;
+  };
+
+  const handleDeleteAnalysis = async () => {
+    if (!selectedAnalysis) return;
+
+    const { error } = await supabase
+      .from("fca_analyses")
+      .delete()
+      .eq("id", selectedAnalysis.id);
+
+    if (error) {
+      toast({ 
+        title: "Error deleting analysis", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } else {
+      toast({ 
+        title: "Analysis deleted", 
+        description: "The report has been successfully deleted" 
+      });
+      setSelectedAnalysis(null);
+      setCohortData(null);
+      setFeeApprovalData(null);
+      await loadAnalyses();
+    }
   };
 
   const handleExportToWord = async () => {
@@ -434,6 +461,26 @@ export const FCAVisualReport = () => {
                 <FileDown className="h-4 w-4 mr-2" />
                 Export to Excel
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Analysis Report</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this analysis for {selectedAnalysis.employee_name}? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAnalysis}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </CardHeader>
