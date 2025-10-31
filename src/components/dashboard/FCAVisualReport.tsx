@@ -180,7 +180,7 @@ export const FCAVisualReport = () => {
 
   const calculateCohortAnalysis = () => {
     if (!cohortData || cohortData.length === 0 || !selectedAnalysis) {
-      return { cohortCount: 0, averageCR: 0, supervisorName: 'N/A' };
+      return { cohortCount: 0, averageCR: 0, supervisorName: 'N/A', cohortMembers: [] };
     }
 
     // Get supervisor name from the analysis or from fee approval data
@@ -203,7 +203,8 @@ export const FCAVisualReport = () => {
     return {
       cohortCount: cohortUnderSameSupervisor.length,
       averageCR: averageCR * 100, // Convert to percentage
-      supervisorName
+      supervisorName,
+      cohortMembers: cohortUnderSameSupervisor
     };
   };
 
@@ -395,11 +396,29 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: cohortAnalysis.cohortCount > 0
+            text: cohortAnalysis.cohortCount === 1
+              ? `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortAnalysis.cohortCount} of them are reporting to ${cohortAnalysis.supervisorName}.`
+              : cohortAnalysis.cohortCount > 1
               ? `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortAnalysis.cohortCount} of them are reporting to ${cohortAnalysis.supervisorName}. The average Compa-ratio of these other staff reporting to ${cohortAnalysis.supervisorName} is ${Math.ceil(cohortAnalysis.averageCR)}%.`
               : `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, none of them are reporting to ${cohortAnalysis.supervisorName}.`,
-            spacing: { after: 200 },
+            spacing: { after: cohortAnalysis.cohortCount > 0 ? 100 : 200 },
           }),
+          ...(cohortAnalysis.cohortCount > 0 ? [
+            new Paragraph({
+              text: "Here are the details:",
+              spacing: { after: 100 },
+            }),
+            ...cohortAnalysis.cohortMembers.map((member: any) => 
+              new Paragraph({
+                text: `${member.employee_name} - ${member.contract_type === 'consultancy' ? 'Fee' : 'Salary'} = ${Math.ceil(member.current_salary || 0).toLocaleString()} ${member.currency} - CR = ${Math.ceil((member.compa_ratio || 0) * 100)}%`,
+                spacing: { after: 100 },
+              })
+            ),
+            new Paragraph({
+              text: "",
+              spacing: { after: 100 },
+            })
+          ] : []),
 
           // Average Compa-Ratio
           new Paragraph({
@@ -762,10 +781,20 @@ export const FCAVisualReport = () => {
                 <TableCell className="text-center">
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
-                <TableCell>
-                  {cohortAnalysis.cohortCount > 0
+                <TableCell className="whitespace-pre-line">
+                  {cohortAnalysis.cohortCount === 1
+                    ? `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortAnalysis.cohortCount} of them are reporting to ${cohortAnalysis.supervisorName}.`
+                    : cohortAnalysis.cohortCount > 1
                     ? `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, ${cohortAnalysis.cohortCount} of them are reporting to ${cohortAnalysis.supervisorName}. The average Compa-ratio of these other staff reporting to ${cohortAnalysis.supervisorName} is ${Math.ceil(cohortAnalysis.averageCR)}%.`
                     : `From the other staff members on Meliore grading Level ${selectedAnalysis.level} in ${selectedAnalysis.country}, none of them are reporting to ${cohortAnalysis.supervisorName}.`}
+                  {cohortAnalysis.cohortCount > 0 && (
+                    <>
+                      {"\n\n"}Here are the details:{"\n"}
+                      {cohortAnalysis.cohortMembers.map((member: any, idx: number) => (
+                        `${member.employee_name} - ${member.contract_type === 'consultancy' ? 'Fee' : 'Salary'} = ${Math.ceil(member.current_salary || 0).toLocaleString()} ${member.currency} - CR = ${Math.ceil((member.compa_ratio || 0) * 100)}%${idx < cohortAnalysis.cohortMembers.length - 1 ? '\n' : ''}`
+                      )).join('')}
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
 
