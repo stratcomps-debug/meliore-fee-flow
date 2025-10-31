@@ -530,9 +530,9 @@ export const FCAVisualReport = () => {
               spacing: { after: 100 },
             })
           ] : []),
-          ...(macroEffect && proposedAdj ? [
+          ...(macroEffect ? [
             new Paragraph({
-              text: `The effect of Macroeconomic elements on the purchasing power of staff members in ${selectedAnalysis.country} is a ${parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of ${Math.ceil(Math.abs(parseFloat(macroEffect)))}% resulting in a ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} adjustment of ${Math.ceil(parseFloat(proposedAdj))}%`,
+              text: `The effect of Macroeconomic elements on the purchasing power of staff members in ${selectedAnalysis.country} is a ${parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of ${Math.ceil(Math.abs(parseFloat(macroEffect)))}%.`,
               spacing: { after: 200 },
             })
           ] : []),
@@ -923,9 +923,9 @@ export const FCAVisualReport = () => {
                             </p>
                           </>
                         )}
-                        {macroEffect && proposedAdj && (
+                        {macroEffect && (
                           <p>
-                            The effect of Macroeconomic elements on the purchasing power of staff members in {selectedAnalysis.country} is a {parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of {Math.ceil(Math.abs(parseFloat(macroEffect)))}% resulting in a {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} adjustment of {Math.ceil(parseFloat(proposedAdj))}%
+                            The effect of Macroeconomic elements on the purchasing power of staff members in {selectedAnalysis.country} is a {parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of {Math.ceil(Math.abs(parseFloat(macroEffect)))}%.
                           </p>
                         )}
                       </>
