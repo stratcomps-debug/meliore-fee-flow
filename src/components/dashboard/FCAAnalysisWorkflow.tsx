@@ -11,6 +11,20 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, ExternalLink, Info } from "lucide-react";
 
+// Data source mapping
+const WTW_COUNTRIES = [
+  "Austria", "Chile", "Costa Rica", "Egypt", "Georgia", "Ghana", 
+  "Hong Kong", "Ireland", "Luxembourg", "Malaysia", "Norway", 
+  "Portugal", "Sweden", "Turkey"
+];
+
+const KF_COUNTRIES = [
+  "Argentina", "Australia", "Bangladesh", "Belgium", "Brazil", "Canada",
+  "Denmark", "France", "Germany", "India", "Indonesia", "Italy", "Japan",
+  "Kenya", "Netherlands", "Nigeria", "Philippines", "Poland", "Senegal",
+  "South Africa", "South Korea", "Spain", "Thailand", "UK", "USA"
+];
+
 export const FCAAnalysisWorkflow = () => {
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
@@ -145,9 +159,10 @@ export const FCAAnalysisWorkflow = () => {
       
       let paybandData = null;
       if (midpointFromData) {
+        const isWTW = WTW_COUNTRIES.includes(employee.country);
         paybandData = {
-          kf_midpoint: parseFloat(midpointFromData),
-          wtw_midpoint: null,
+          kf_midpoint: isWTW ? null : parseFloat(midpointFromData),
+          wtw_midpoint: isWTW ? parseFloat(midpointFromData) : null,
           currency: employee.currency,
         };
       }
@@ -247,9 +262,11 @@ export const FCAAnalysisWorkflow = () => {
 
     setLoading(true);
     try {
-      // Use midpoint from HumanForce data
+      // Use midpoint from HumanForce data and determine data source
       const midpointFromData = selectedEmployee.raw_data?.midpoint_of_band || selectedEmployee.raw_data?.["Midpoint of band"];
       const midpoint = midpointFromData ? parseFloat(midpointFromData) : 0;
+      const isWTW = WTW_COUNTRIES.includes(selectedEmployee.country);
+      
       const compaRatioCurrent = calculateCompaRatio(selectedEmployee.current_salary, midpoint);
       const compaRatioProposed = calculateCompaRatio(parseFloat(formData.proposed_salary), midpoint);
 
@@ -263,8 +280,8 @@ export const FCAAnalysisWorkflow = () => {
           proposed_salary: parseFloat(formData.proposed_salary),
           currency: selectedEmployee.currency,
           contract_type: formData.contract_type,
-          kf_midpoint: midpoint,
-          wtw_midpoint: null,
+          kf_midpoint: isWTW ? null : midpoint,
+          wtw_midpoint: isWTW ? midpoint : null,
           compa_ratio_current: compaRatioCurrent,
           compa_ratio_proposed: compaRatioProposed,
           inflation_rate: parseFloat(formData.inflation_rate) || null,
