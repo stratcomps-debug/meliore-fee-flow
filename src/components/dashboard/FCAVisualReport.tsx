@@ -151,6 +151,7 @@ export const FCAVisualReport = () => {
 
     const midpoint = selectedAnalysis.kf_midpoint || selectedAnalysis.wtw_midpoint || 0;
     const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
+    const dataYear = selectedAnalysis.kf_midpoint ? 2024 : 2025;
     const equityDistance = calculateEquityDistance();
     const avgCompaRatio = calculateAverageCompaRatio();
     const currentYear = new Date().getFullYear();
@@ -196,7 +197,7 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency} (which is also 100% Compa-ratio). The source of the data is ${dataSource} and values date from ${currentYear}.`,
+            text: `Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. The current 75th percentile for a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} is ${Math.ceil(midpoint).toLocaleString()} ${selectedAnalysis.currency} (which is also 100% Compa-ratio). The source of the data is ${dataSource} and values date from ${dataYear}.`,
             spacing: { after: 100 },
           }),
           new Paragraph({
@@ -312,6 +313,7 @@ export const FCAVisualReport = () => {
 
     const midpoint = selectedAnalysis.kf_midpoint || selectedAnalysis.wtw_midpoint || 0;
     const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
+    const dataYear = selectedAnalysis.kf_midpoint ? 2024 : 2025;
     const equityDistance = calculateEquityDistance();
     const avgCompaRatio = calculateAverageCompaRatio();
     const currentYear = new Date().getFullYear();
@@ -440,6 +442,7 @@ export const FCAVisualReport = () => {
   const avgCompaRatio = calculateAverageCompaRatio();
   const midpoint = selectedAnalysis.kf_midpoint || selectedAnalysis.wtw_midpoint || 0;
   const dataSource = selectedAnalysis.kf_midpoint ? "Korn Ferry" : "Towers Watson";
+  const dataYear = selectedAnalysis.kf_midpoint ? 2024 : 2025;
 
   return (
     <div className="space-y-6">
@@ -538,7 +541,7 @@ export const FCAVisualReport = () => {
                 <TableCell>
                   "Our philosophy is to manage pay around the midpoint of the pay band or the 75th percentile of the market data. 
                   The current 75th percentile for a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} is {Math.ceil(midpoint).toLocaleString()} {selectedAnalysis.currency} 
-                  (which is also 100% Compa-ratio). The source of the data is {dataSource} and values date from {new Date().getFullYear()}.
+                  (which is also 100% Compa-ratio). The source of the data is {dataSource} and values date from {dataYear}.
                   
                   {selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, 
                   P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. 
