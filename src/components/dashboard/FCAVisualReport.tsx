@@ -911,24 +911,24 @@ export const FCAVisualReport = () => {
                     return (
                       <>
                         <p>
-                          According to the latest Trading Economics data, the 12 months Inflation rate in {selectedAnalysis.country} is {inflationRate || "N/A"}% in {currentYear}.
+                          According to Trading Economics, The annual inflation rate in {selectedAnalysis.country} is {inflationRate || "N/A"}% in September {currentYear}.
                         </p>
                         {selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious && (
                           <>
                             <p>
-                              On average in {currentYear}, 1 USD allowed our staff members to obtain {fxCurrent} {selectedAnalysis.currency}.
+                              On average during {currentYear}, 1 USD allowed our staff members to obtain {fxCurrent} {selectedAnalysis.currency}.
                             </p>
                             <p>
-                              On average in {previousYear}, 1 USD allowed our staff members to obtain {fxPrevious} {selectedAnalysis.currency}.
+                              On average during {previousYear}, 1 USD allowed our staff members to obtain {fxPrevious} {selectedAnalysis.currency}.
                             </p>
                             <p>
-                              In conclusion: on average in {currentYear}, 1 USD allowed our staff members to obtain {parseFloat(fxChange || "0") > 0 ? "more" : "less"} {selectedAnalysis.currency} than in {previousYear} ({Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "increase" : "decrease"}).
+                              In conclusion: on average, 1 USD allowed our staff members to obtain {Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "more" : "less"} than the previous year.
                             </p>
                           </>
                         )}
                         {macroEffect && proposedAdj && (
-                          <p className="font-semibold">
-                            The total macroeconomic effect (Inflation + FX fluctuation) is {Math.ceil(parseFloat(macroEffect))}%. Meliore proposes to cover 50% of this effect, resulting in a {Math.ceil(parseFloat(proposedAdj))}% salary adjustment.
+                          <p>
+                            The effect of Macroeconomic elements on the purchasing power of staff members in {selectedAnalysis.country} is a {parseFloat(macroEffect) > 0 ? "decrease" : "increase"} of {Math.ceil(Math.abs(parseFloat(macroEffect)))}% resulting in a {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} adjustment of {Math.ceil(parseFloat(proposedAdj))}%
                           </p>
                         )}
                       </>
