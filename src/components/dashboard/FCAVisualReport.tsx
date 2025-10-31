@@ -246,7 +246,7 @@ export const FCAVisualReport = () => {
             spacing: { after: 100 },
           }),
           new Paragraph({
-            text: `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
+            text: `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil((selectedAnalysis.proposed_salary / midpoint) * 100)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`,
             spacing: { after: selectedAnalysis.rationale ? 100 : 200 },
           }),
           ...(selectedAnalysis.rationale ? [
@@ -606,7 +606,7 @@ export const FCAVisualReport = () => {
                     }
                   })()}
                   {"\n\n"}
-                  Based on qualifications, skills and experience, P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
+                  Based on qualifications, skills and experience, P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil((selectedAnalysis.proposed_salary / midpoint) * 100)}%. This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
                   {selectedAnalysis.rationale && `\n\nRationale: ${selectedAnalysis.rationale}`}
                 </TableCell>
               </TableRow>
