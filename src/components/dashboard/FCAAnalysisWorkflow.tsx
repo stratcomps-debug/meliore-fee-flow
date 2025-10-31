@@ -1001,22 +1001,12 @@ export const FCAAnalysisWorkflow = () => {
               )}
 
               <div className="space-y-2">
-                <Label>Rationale</Label>
+                <Label>Additional Comment</Label>
                 <Textarea
-                  placeholder={`Explain the reasoning for this ${formData.contract_type === "consultancy" ? "fee" : "salary"} change`}
+                  placeholder="Add any additional comments or notes"
                   value={formData.rationale}
                   onChange={(e) => setFormData({ ...formData, rationale: e.target.value })}
                   rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Recommendation</Label>
-                <Textarea
-                  placeholder="Your recommendation"
-                  value={formData.recommendation}
-                  onChange={(e) => setFormData({ ...formData, recommendation: e.target.value })}
-                  rows={3}
                 />
               </div>
 
