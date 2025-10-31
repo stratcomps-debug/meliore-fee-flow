@@ -79,14 +79,13 @@ export const FCAVisualReport = () => {
   const calculateEquityDistance = () => {
     if (!cohortData || cohortData.length === 0) return { current: 0, proposed: 0, count: 0, contractType: '' };
     
-    // No need to filter by contract type - cohort is already filtered by contract type in the query
-    // Get all staff members excluding the current analysis subject
+    // Get all staff members excluding the current analysis subject for calculation
     const otherStaffMembers = cohortData.filter((m: any) => 
       m.employee_name !== selectedAnalysis?.employee_name
     );
     
-    // X = number of other staff members (or total cohort if it's a candidate/new hire)
-    const staffCount = otherStaffMembers.length > 0 ? otherStaffMembers.length : cohortData.length;
+    // X = total cohort count including the current staff member
+    const staffCount = cohortData.length;
     
     // Calculate current equity distance (A) - based on compa-ratios of other staff
     const compaRatios = otherStaffMembers.length > 0 
@@ -322,7 +321,7 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `We currently have ${equityDistance.count} ${equityDistance.contractType} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance ${Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `will be ${Math.ceil(equityDistance.proposed)}%`}.`,
+            text: `We currently have ${equityDistance.count} ${equityDistance.contractType} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country} including ${selectedAnalysis.employee_name}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance ${Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `will be ${Math.ceil(equityDistance.proposed)}%`}.`,
             spacing: { after: 200 },
           }),
 
@@ -679,7 +678,7 @@ export const FCAVisualReport = () => {
                   <Check className="h-4 w-4 mx-auto" />
                 </TableCell>
                 <TableCell>
-                  We currently have {equityDistance.count} {equityDistance.contractType} on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country}. The equity distance for the {equityDistance.count} staff {equityDistance.count === 1 ? 'member' : 'members'} is {Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance {Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `is ${Math.ceil(equityDistance.proposed)}%`}.
+                  We currently have {equityDistance.count} {equityDistance.contractType} on a Meliore Level {selectedAnalysis.level} in {selectedAnalysis.country} including {selectedAnalysis.employee_name}. The equity distance for the {equityDistance.count} staff {equityDistance.count === 1 ? 'member' : 'members'} is {Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance {Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `is ${Math.ceil(equityDistance.proposed)}%`}.
                 </TableCell>
               </TableRow>
 
