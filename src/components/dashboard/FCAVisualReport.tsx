@@ -1097,22 +1097,23 @@ export const FCAVisualReport = () => {
                     const proposedCR = (selectedAnalysis.proposed_salary / midpoint) * 100;
                     const currentCR = selectedAnalysis.compa_ratio_current;
                     const totalIncrease = ((selectedAnalysis.proposed_salary - selectedAnalysis.current_salary) / selectedAnalysis.current_salary) * 100;
-                    const macroEffect = feeApprovalData?.document_content?.formData?.macroeconomic_effect;
-                    const macroEffectValue = macroEffect ? Math.abs(parseFloat(macroEffect)) : 0;
-                    const macroContribution = macroEffectValue * 0.5;
-                    const performanceContribution = totalIncrease - macroContribution;
                     
                     if (proposedCR > 120) {
                       if (currentCR > 120) {
                         const lumpSum = selectedAnalysis.proposed_salary - selectedAnalysis.current_salary;
-                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${totalIncrease.toFixed(2)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.\n\nThis proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "Meets Expectations" with ${performanceContribution.toFixed(2)}% increase\n\nExplaining how we land on the total percentage increase of ${totalIncrease.toFixed(2)}%`;
+                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to continue to pay ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(currentCR)}% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${totalIncrease.toFixed(2)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
                       } else {
                         const baseSalaryAt120 = midpoint * 1.20;
                         const lumpSum = selectedAnalysis.proposed_salary - baseSalaryAt120;
-                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${totalIncrease.toFixed(2)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.\n\nThis proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "Meets Expectations" with ${performanceContribution.toFixed(2)}% increase\n\nExplaining how we land on the total percentage increase of ${totalIncrease.toFixed(2)}%`;
+                        return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${totalIncrease.toFixed(2)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
                       }
                     } else {
-                      return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.\n\nThis proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "Meets Expectations" with ${performanceContribution.toFixed(2)}% increase\n\nExplaining how we land on the total percentage increase of ${totalIncrease.toFixed(2)}%`;
+                      const increaseText = totalIncrease > 0.01 
+                        ? ` This is a ${totalIncrease.toFixed(2)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                        : totalIncrease < -0.01
+                        ? ` This is a ${Math.abs(totalIncrease).toFixed(2)}% decrease compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                        : '';
+                      return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.${increaseText}`;
                     }
                   })()}
                 </TableCell>
