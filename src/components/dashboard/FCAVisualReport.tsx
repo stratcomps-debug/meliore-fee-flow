@@ -226,7 +226,7 @@ export const FCAVisualReport = () => {
             spacing: { after: 100 },
           }),
           new Paragraph({
-            text: `${selectedAnalysis.employee_name}'s current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency}. ${pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is ${Math.ceil(selectedAnalysis.compa_ratio_current)}% to the Level ${selectedAnalysis.level}.`,
+            text: `${selectedAnalysis.employee_name}'s current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is ${Math.ceil(selectedAnalysis.current_salary).toLocaleString()} ${selectedAnalysis.currency}. ${pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is ${Math.ceil(selectedAnalysis.compa_ratio_current)}% to the Level ${selectedAnalysis.level} in ${selectedAnalysis.country}.`,
             spacing: { after: 100 },
           }),
           new Paragraph({
@@ -576,7 +576,7 @@ export const FCAVisualReport = () => {
                   {"\n\n"}
                   {selectedAnalysis.employee_name} has been with the organisation for {yearsWithOrg}, {pronoun} joined in {hireDateFormatted}.
                   {"\n\n"}
-                  {selectedAnalysis.employee_name}'s current {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is {Math.ceil(selectedAnalysis.current_salary).toLocaleString()} {selectedAnalysis.currency}. {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is {Math.ceil(selectedAnalysis.compa_ratio_current)}% to the Level {selectedAnalysis.level}.
+                  {selectedAnalysis.employee_name}'s current {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} is {Math.ceil(selectedAnalysis.current_salary).toLocaleString()} {selectedAnalysis.currency}. {pronoun === "he" ? "His" : pronoun === "she" ? "Her" : "Their"} current compa-ratio is {Math.ceil(selectedAnalysis.compa_ratio_current)}% to the Level {selectedAnalysis.level} in {selectedAnalysis.country}.
                   {"\n\n"}
                   {selectedAnalysis.employee_name} is a fully functional experienced staff - based on qualifications, skills and experience, P&C proposes to pay {Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} {selectedAnalysis.currency} per year which equals to a Compa-ratio of {Math.ceil(selectedAnalysis.compa_ratio_proposed)}%. This is within the budgeted {selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.
                   {selectedAnalysis.rationale && `\n\nRationale: ${selectedAnalysis.rationale}`}
