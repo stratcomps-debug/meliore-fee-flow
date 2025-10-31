@@ -322,7 +322,7 @@ export const FCAVisualReport = () => {
             spacing: { before: 200, after: 100 },
           }),
           new Paragraph({
-            text: `We currently have ${equityDistance.count} ${equityDistance.contractType} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance ${Math.ceil(equityDistance.current) === Math.ceil(equityDistance.proposed) ? 'remains the same' : `will be ${Math.ceil(equityDistance.proposed)}%`}.`,
+            text: `We currently have ${equityDistance.count} ${equityDistance.contractType} on a Meliore Level ${selectedAnalysis.level} in ${selectedAnalysis.country}. The equity distance for the ${equityDistance.count} staff ${equityDistance.count === 1 ? 'member' : 'members'} is ${Math.ceil(equityDistance.current)}%. If we offer our proposition, the new equity distance ${Math.abs(equityDistance.current - equityDistance.proposed) < 0.01 ? 'remains the same' : `will be ${Math.ceil(equityDistance.proposed)}%`}.`,
             spacing: { after: 200 },
           }),
 
