@@ -260,7 +260,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_currency_by_country: {
+        Args: { country_name: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
