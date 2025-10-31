@@ -917,7 +917,12 @@ export const FCAVisualReport = () => {
                         return `When a staff's ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "pay"} is above the ${selectedAnalysis.contract_type === "consultancy" ? "fee band" : "pay scale"} which is 120%CR, any increase above that is paid as one-off.\n\nIn view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${Math.ceil(totalIncrease)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.`;
                       }
                     } else {
-                      return `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role. This is a ${Math.ceil(totalIncrease)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`;
+                      const increaseText = totalIncrease > 0.01 
+                        ? ` This is a ${totalIncrease.toFixed(2)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                        : totalIncrease < -0.01
+                        ? ` This is a ${Math.abs(totalIncrease).toFixed(2)}% decrease compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                        : '';
+                      return `Based on qualifications, skills and experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${Math.ceil(proposedCR)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.${increaseText}`;
                     }
                   })()}
                   {"\n\n"}
