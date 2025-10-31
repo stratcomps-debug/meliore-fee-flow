@@ -516,13 +516,13 @@ export const FCAVisualReport = () => {
             text: `According to Trading Economics, The annual inflation rate in ${selectedAnalysis.country} is ${selectedAnalysis.inflation_rate || "N/A"}% in September ${currentYear}.`,
             spacing: { after: 100 },
           }),
-          ...(selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious ? [
+          ...(fxCurrent && fxPrevious && fxChange && parseFloat(fxChange) !== 0 ? [
             new Paragraph({
-              text: `On average during ${currentYear}, 1 USD allowed our staff members to obtain ${fxCurrent} ${selectedAnalysis.currency}.`,
+              text: `On average during ${currentYear}, 1 USD allowed our staff members to obtain ${fxCurrent} ${selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.`,
               spacing: { after: 100 },
             }),
             new Paragraph({
-              text: `On average during ${previousYear}, 1 USD allowed our staff members to obtain ${fxPrevious} ${selectedAnalysis.currency}.`,
+              text: `On average during ${previousYear}, 1 USD allowed our staff members to obtain ${fxPrevious} ${selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.`,
               spacing: { after: 100 },
             }),
             new Paragraph({
@@ -910,13 +910,13 @@ export const FCAVisualReport = () => {
                         <p>
                           According to Trading Economics, The annual inflation rate in {selectedAnalysis.country} is {inflationRate || "N/A"}% in September {currentYear}.
                         </p>
-                        {selectedAnalysis.currency !== "USD" && fxCurrent && fxPrevious && (
+                        {fxCurrent && fxPrevious && fxChange && parseFloat(fxChange) !== 0 && (
                           <>
                             <p>
-                              On average during {currentYear}, 1 USD allowed our staff members to obtain {fxCurrent} {selectedAnalysis.currency}.
+                              On average during {currentYear}, 1 USD allowed our staff members to obtain {fxCurrent} {selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.
                             </p>
                             <p>
-                              On average during {previousYear}, 1 USD allowed our staff members to obtain {fxPrevious} {selectedAnalysis.currency}.
+                              On average during {previousYear}, 1 USD allowed our staff members to obtain {fxPrevious} {selectedAnalysis.contract_type === "consultancy" ? feeApprovalData?.document_content?.employee?.currency || "KES" : selectedAnalysis.currency}.
                             </p>
                             <p>
                               In conclusion: on average, 1 USD allowed our staff members to obtain {Math.ceil(Math.abs(parseFloat(fxChange || "0")))}% {parseFloat(fxChange || "0") > 0 ? "more" : "less"} than the previous year.
