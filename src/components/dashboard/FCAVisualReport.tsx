@@ -986,7 +986,19 @@ export const FCAVisualReport = () => {
                         return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(baseSalaryAt120).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of 120.00% and have one time lump sum of ${Math.ceil(lumpSum).toLocaleString()} ${selectedAnalysis.currency} which is a ${totalIncrease.toFixed(2)}% payment. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.\n\nThis proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with a compa-ratio of ${currentCR.toFixed(2)}% meaning a ${performanceIncrease.toFixed(2)}%`;
                       }
                     } else {
-                      return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${proposedCR.toFixed(2)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.\n\nThis proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with a compa-ratio of ${currentCR.toFixed(2)}% meaning a ${performanceIncrease.toFixed(2)}%`;
+                      const increaseText = selectedAnalysis.analysis_type === 'external_candidate_initial' 
+                        ? '' 
+                        : totalIncrease > 0.01 
+                        ? ` This is a ${totalIncrease.toFixed(2)}% increase compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                        : totalIncrease < -0.01
+                        ? ` This is a ${Math.abs(totalIncrease).toFixed(2)}% decrease compared to the current ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"}.`
+                        : '';
+                      
+                      const propositionBreakdown = selectedAnalysis.analysis_type === 'external_candidate_initial'
+                        ? ''
+                        : `\n\nThis proposition is the result of:\n- 50% of ${macroEffectValue.toFixed(2)}% for macroeconomic changes = ${macroContribution.toFixed(2)}%\n- LM's assessment of the SOW of "${performanceRating}" with a compa-ratio of ${currentCR.toFixed(2)}% meaning a ${performanceIncrease.toFixed(2)}%`;
+                      
+                      return `In view of the above and considering the data, our guidelines and the staff's experience, P&C proposes to pay ${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency} per year which equals to a Compa-ratio of ${proposedCR.toFixed(2)}%. This is within the budgeted ${selectedAnalysis.contract_type === "consultancy" ? "fee" : "salary"} for this role.${increaseText}${propositionBreakdown}`;
                     }
                   })()}
                   {selectedAnalysis.rationale && `\n\nRationale: ${selectedAnalysis.rationale}`}
