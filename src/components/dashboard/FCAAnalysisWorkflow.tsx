@@ -331,6 +331,22 @@ export const FCAAnalysisWorkflow = () => {
       return;
     }
 
+    if (!formData.proposed_salary) {
+      toast({ title: "Please enter a proposed salary", variant: "destructive" });
+      return;
+    }
+
+    // Validation: Proposed salary must be >= current salary (except for external candidates)
+    const proposedSalaryNum = parseFloat(formData.proposed_salary);
+    if (formData.analysis_type !== 'external_candidate_initial' && proposedSalaryNum < currentData.current_salary) {
+      toast({ 
+        title: "Invalid proposed salary", 
+        description: `Proposed ${formData.contract_type === "consultancy" ? "fee" : "salary"} (${proposedSalaryNum.toLocaleString()} USD) cannot be lower than current ${formData.contract_type === "consultancy" ? "fee" : "salary"} (${currentData.current_salary.toLocaleString()} USD)`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const currentData = getCurrentEmployeeData();
@@ -997,6 +1013,13 @@ export const FCAAnalysisWorkflow = () => {
                     }
                   }}
                   disabled={formData.analysis_type === 'external_candidate_initial'}
+                  className={
+                    formData.analysis_type !== 'external_candidate_initial' && 
+                    getCurrentEmployeeData() && 
+                    parseFloat(formData.proposed_salary) < getCurrentEmployeeData().current_salary
+                      ? "border-destructive"
+                      : ""
+                  }
                 />
                 {formData.analysis_type !== 'external_candidate_initial' && getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
                   <p className="text-xs text-muted-foreground">

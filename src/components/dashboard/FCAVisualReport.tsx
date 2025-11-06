@@ -742,7 +742,7 @@ export const FCAVisualReport = () => {
         { Section: "Proposed Salary", Details: `${Math.ceil(selectedAnalysis.proposed_salary).toLocaleString()} ${selectedAnalysis.currency}` },
         { Section: "Current Compa-Ratio", Details: `${selectedAnalysis.compa_ratio_current.toFixed(2)}%` },
         { Section: "Proposed Compa-Ratio", Details: `${selectedAnalysis.compa_ratio_proposed.toFixed(2)}%` },
-        { Section: "Total Increase", Details: `${(((selectedAnalysis.proposed_salary - selectedAnalysis.current_salary) / selectedAnalysis.current_salary) * 100).toFixed(2)}%` },
+        { Section: "Total Increase", Details: `${Math.abs(((selectedAnalysis.proposed_salary - selectedAnalysis.current_salary) / selectedAnalysis.current_salary) * 100).toFixed(2)}%` },
         { Section: "Macro Contribution (50%)", Details: `${(Math.abs(parseFloat(macroEffect || "0")) * 0.5).toFixed(2)}%` },
         { Section: "Performance Contribution", Details: `${parseFloat(feeApprovalData?.document_content?.formData?.merit_increase?.toString() || "0").toFixed(2)}%` },
         { Section: "Performance Rating", Details: selectedAnalysis.performance_rating || feeApprovalData?.document_content?.formData?.performance_rating || "Meets Expectations" },
