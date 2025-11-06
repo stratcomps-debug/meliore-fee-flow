@@ -170,7 +170,11 @@ export const FCAAnalysisWorkflow = () => {
       // FX change (positive = more local currency per USD = good for purchasing power)
       // Inflation (positive = reduces purchasing power, so subtract it)
       const macroEffect = fxChangePercent - inflationRate;
-      const proposedAdjustment = macroEffect * 0.5;
+      
+      // Proposed adjustment: only apply if macro effect is negative (purchasing power decreased)
+      // If negative: compensate with -50% of the macro effect
+      // If positive: no adjustment needed (0%)
+      const proposedAdjustment = macroEffect < 0 ? macroEffect * 0.5 : 0;
 
       setFormData((prev) => ({
         ...prev,
@@ -865,7 +869,7 @@ export const FCAAnalysisWorkflow = () => {
                       {fetchingMacroData && <span className="text-sm text-muted-foreground">Fetching data...</span>}
                     </div>
                     <div className="flex items-center gap-2">
-                      <Label className="text-xs whitespace-nowrap">Proposed Adjustment (50% of Total)</Label>
+                      <Label className="text-xs whitespace-nowrap">Proposed Adjustment {parseFloat(formData.macroeconomic_effect || "0") < 0 ? "(-50% of Total)" : "(0% - positive macro effect)"}</Label>
                       <Input
                         type="text"
                         step="0.01"
@@ -931,7 +935,7 @@ export const FCAAnalysisWorkflow = () => {
                           const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
                           const inflation = parseFloat(formData.inflation_rate) || 0;
                           const macroEffect = fxChange - inflation;
-                          const adjustment = macroEffect * 0.5;
+                          const adjustment = macroEffect < 0 ? macroEffect * 0.5 : 0;
                           
                           setFormData({ 
                             ...formData, 
@@ -961,7 +965,7 @@ export const FCAAnalysisWorkflow = () => {
                           const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
                           const inflation = parseFloat(formData.inflation_rate) || 0;
                           const macroEffect = fxChange - inflation;
-                          const adjustment = macroEffect * 0.5;
+                          const adjustment = macroEffect < 0 ? macroEffect * 0.5 : 0;
                           
                           setFormData({ 
                             ...formData, 
@@ -1023,7 +1027,7 @@ export const FCAAnalysisWorkflow = () => {
                 />
                 {formData.analysis_type !== 'external_candidate_initial' && getCurrentEmployeeData() && getCurrentEmployeeData().current_salary > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    Total % increase: {(
+                    Total % increase: {Math.abs(
                       (parseFloat(formData.merit_increase?.toString() || "0")) + 
                       (parseFloat(formData.proposed_adjustment || "0"))
                     ).toFixed(2)}%
@@ -1032,7 +1036,7 @@ export const FCAAnalysisWorkflow = () => {
                       getCurrentEmployeeData().current_salary * 
                       (1 + ((parseFloat(formData.merit_increase?.toString() || "0")) + 
                       (parseFloat(formData.proposed_adjustment || "0"))) / 100)
-                    ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {getCurrentEmployeeData().currency || paybandInfo?.currency}
+                    ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {formData.contract_type === "consultancy" ? "USD" : (getCurrentEmployeeData().currency || paybandInfo?.currency)}
                   </p>
                 )}
               </div>
