@@ -167,7 +167,9 @@ export const FCAAnalysisWorkflow = () => {
       const { inflationRate, fxRateCurrent, fxRatePrevious, fxChangePercent } = data;
 
       // Calculate macroeconomic effect and proposed adjustment
-      const macroEffect = Math.abs(fxChangePercent) + inflationRate;
+      // FX change (positive = more local currency per USD = good for purchasing power)
+      // Inflation (positive = reduces purchasing power, so subtract it)
+      const macroEffect = fxChangePercent - inflationRate;
       const proposedAdjustment = macroEffect * 0.5;
 
       setFormData((prev) => ({
@@ -912,7 +914,7 @@ export const FCAAnalysisWorkflow = () => {
                           const current = parseFloat(newCurrent) || 0;
                           const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
                           const inflation = parseFloat(formData.inflation_rate) || 0;
-                          const macroEffect = Math.abs(fxChange) + inflation;
+                          const macroEffect = fxChange - inflation;
                           const adjustment = macroEffect * 0.5;
                           
                           setFormData({ 
@@ -942,7 +944,7 @@ export const FCAAnalysisWorkflow = () => {
                           const current = parseFloat(formData.fx_rate_current) || 0;
                           const fxChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
                           const inflation = parseFloat(formData.inflation_rate) || 0;
-                          const macroEffect = Math.abs(fxChange) + inflation;
+                          const macroEffect = fxChange - inflation;
                           const adjustment = macroEffect * 0.5;
                           
                           setFormData({ 
